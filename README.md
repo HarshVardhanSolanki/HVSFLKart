@@ -1,1 +1,1 @@
-# FLiPKart-Bulk-Label-Cropper-HVS-
+# FLiPKart-Bulk-Label-Cropper-HVS
