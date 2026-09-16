@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HVS Flipkart Multi-PDF Thermal Cropper & Merger</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    .app-container {
+      width: 100%;
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 860px) {
+      .app-container { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    p.subtitle { font-size: 0.8rem; color: #64748b; margin-bottom: 16px; }
+    
+    .dropzone {
+      border: 2px dashed #94a3b8;
+      border-radius: 10px;
+      padding: 20px 14px;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+    .dropzone:hover { border-color: #2563eb; background: #eff6ff; }
+    .dropzone p { font-size: 0.88rem; font-weight: 600; color: #334155; }
+    .dropzone span { font-size: 0.75rem; color: #64748b; display: block; margin-top: 3px; }
+
+    /* File List */
+    .file-list-container {
+      max-height: 140px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-bottom: 12px;
+      background: #f8fafc;
+      display: none;
+    }
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      padding: 4px 6px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .file-item:last-child { border-bottom: none; }
+    .file-name {
+      font-weight: 600;
+      color: #334155;
+      max-width: 230px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-badge {
+      background: #e2e8f0;
+      color: #475569;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .file-remove {
+      color: #ef4444;
+      cursor: pointer;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      display: none;
+    }
+    .btn-clear {
+      font-size: 0.72rem;
+      color: #dc2626;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
+    /* Pixel Coordinate Grid */
+    .pixel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pixel-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .pixel-box label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .pixel-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pixel-controls input {
+      width: 100%;
+      padding: 5px 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+      text-align: right;
+    }
+    .nudge-btn {
+      padding: 4px 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      background: #fff;
+      cursor: pointer;
+      color: #475569;
+    }
+    .nudge-btn:hover { background: #e2e8f0; }
+
+    .btn-action {
+      width: 100%;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+      transition: background 0.2s;
+    }
+    .btn-action:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-action:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+    
+    .preview-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .canvas-container {
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 4 / 6;
+      background: #ffffff;
+      border: 2px solid #2563eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    canvas#previewCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .placeholder-text { font-size: 0.85rem; color: #94a3b8; padding: 40px 16px; }
+    #statusMsg { font-size: 0.82rem; margin-top: 10px; text-align: center; min-height: 18px; }
+    .msg-ok { color: #16a34a; font-weight: 600; }
+    .msg-err { color: #dc2626; font-weight: 600; }
+
+    /* Modal Popup Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-dialog {
+      background: #ffffff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+    }
+    .modal-header {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .modal-close {
+      border: none;
+      background: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #64748b;
+      line-height: 1;
+    }
+    .modal-close:hover { color: #0f172a; }
+    .modal-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .pdf-frame {
+      width: 100%;
+      height: 460px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .modal-footer {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 12px;
+    }
+    .btn-modal-print {
+      flex: 1;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 11px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-modal-print:hover { background: #1d4ed8; }
+    .btn-modal-download {
+      flex: 1;
+      background: #059669;
+      color: #ffffff;
+      border: none;
+      padding: 11px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-modal-download:hover { background: #047857; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="card">
+      <h1>HVS Flipkart Multi-PDF Cropper</h1>
+      <p class="subtitle">Crop and merge multiple Flipkart labels into a single 4×6" thermal PDF.</p>
+
+      <!-- Multi-file dropzone -->
+      <div class="dropzone" id="dropZone">
+        <input type="file" id="fileInput" accept="application/pdf" multiple style="display: none;" />
+        <div style="font-size: 26px; margin-bottom: 4px;">📂</div>
+        <p>Click to select multiple PDFs or drag here</p>
+        <span>Supports multi-file selection</span>
+      </div>
+
+      <!-- Loaded File Summary -->
+      <div class="summary-bar" id="summaryBar">
+        <span id="summaryText">0 files • 0 labels</span>
+        <button type="button" class="btn-clear" id="clearBtn">Clear All</button>
+      </div>
+
+      <!-- File List -->
+      <div class="file-list-container" id="fileList"></div>
+
+      <div class="section-title">Exact CropBox (Points / Pixels)</div>
+      <div class="pixel-grid">
+        <div class="pixel-box">
+          <label>Left (X1)</label>
+          <div class="pixel-controls">
+            <button class="nudge-btn" onclick="nudge('x1', -2)">-</button>
+            <input type="number" id="x1" value="180" />
+            <button class="nudge-btn" onclick="nudge('x1', 2)">+</button>
+          </div>
+        </div>
+
+        <div class="pixel-box">
+          <label>Right (X2)</label>
+          <div class="pixel-controls">
+            <button class="nudge-btn" onclick="nudge('x2', -2)">-</button>
+            <input type="number" id="x2" value="416" />
+            <button class="nudge-btn" onclick="nudge('x2', 2)">+</button>
+          </div>
+        </div>
+
+        <div class="pixel-box">
+          <label>Bottom (Y1)</label>
+          <div class="pixel-controls">
+            <button class="nudge-btn" onclick="nudge('y1', -2)">-</button>
+            <input type="number" id="y1" value="460" />
+            <button class="nudge-btn" onclick="nudge('y1', 2)">+</button>
+          </div>
+        </div>
+
+        <div class="pixel-box">
+          <label>Top (Y2)</label>
+          <div class="pixel-controls">
+            <button class="nudge-btn" onclick="nudge('y2', -2)">-</button>
+            <input type="number" id="y2" value="815" />
+            <button class="nudge-btn" onclick="nudge('y2', 2)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-action" id="actionBtn" disabled>Process & Print / Download</button>
+      <div id="statusMsg"></div>
+    </div>
+
+    <!-- Live Preview -->
+    <div class="card preview-card">
+      <div style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 12px;">
+        4×6" Thermal Label Preview
+      </div>
+      <div class="canvas-container">
+        <div id="placeholderText" class="placeholder-text">Upload PDF(s) to preview the cropped shipping labels.</div>
+        <canvas id="previewCanvas" style="display: none;"></canvas>
+      </div>
+      <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center;">
+        <button id="prevBtn" disabled style="padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px;">Prev</button>
+        <span id="pageInfo" style="font-size: 12px; font-weight: 600; color: #475569;">Label 0 / 0</span>
+        <button id="nextBtn" disabled style="padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px;">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Popup: PDF Previewer with Print and Download Buttons -->
+  <div class="modal-overlay" id="printModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modalTitle">Thermal Labels Ready</h3>
+        <button type="button" class="modal-close" id="modalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <iframe id="pdfFrame" class="pdf-frame"></iframe>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-print" id="modalPrintBtn">
+          <span>🖨️</span> Print Labels
+        </button>
+        <button type="button" class="btn-modal-download" id="modalDownloadBtn">
+          <span>⬇️</span> Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
+    }
+
+    let loadedFiles = [];
+    let pageFlatList = [];
+    let currentGlobalIndex = 0;
+    let currentBlobUrl = null;
+    let generatedPdfBytes = null;
+
+    const TARGET_W = 288; // 4 inches = 288 pt
+    const TARGET_H = 432; // 6 inches = 432 pt
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const summaryBar = document.getElementById('summaryBar');
+    const summaryText = document.getElementById('summaryText');
+    const clearBtn = document.getElementById('clearBtn');
+    const x1Input = document.getElementById('x1');
+    const x2Input = document.getElementById('x2');
+    const y1Input = document.getElementById('y1');
+    const y2Input = document.getElementById('y2');
+    const actionBtn = document.getElementById('actionBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const placeholderText = document.getElementById('placeholderText');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // Modal elements
+    const printModal = document.getElementById('printModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const pdfFrame = document.getElementById('pdfFrame');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalPrintBtn = document.getElementById('modalPrintBtn');
+    const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+
+    function nudge(id, delta) {
+      const el = document.getElementById(id);
+      el.value = parseInt(el.value || 0, 10) + delta;
+      renderPreview();
+    }
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFiles(Array.from(e.target.files)));
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files.length) handleFiles(Array.from(e.dataTransfer.files));
+    });
+
+    clearBtn.addEventListener('click', () => {
+      loadedFiles = [];
+      pageFlatList = [];
+      currentGlobalIndex = 0;
+      updateUI();
+    });
+
+    async function handleFiles(files) {
+      const pdfs = files.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+      if (!pdfs.length) {
+        alert('Please select valid PDF files.');
+        return;
+      }
+
+      statusMsg.textContent = `Reading ${pdfs.length} file(s)...`;
+
+      for (const file of pdfs) {
+        try {
+          const buffer = await file.arrayBuffer();
+          const pdfJsDoc = await pdfjsLib.getDocument({ data: buffer.slice(0) }).promise;
+          loadedFiles.push({
+            name: file.name,
+            buffer: buffer,
+            pdfJsDoc: pdfJsDoc,
+            pageCount: pdfJsDoc.numPages
+          });
+        } catch (err) {
+          console.error(`Error loading ${file.name}:`, err);
+        }
+      }
+
+      rebuildPageFlatList();
+      updateUI();
+      if (pageFlatList.length > 0) {
+        await renderPreview();
+      }
+    }
+
+    function rebuildPageFlatList() {
+      pageFlatList = [];
+      loadedFiles.forEach((file, fIdx) => {
+        for (let p = 1; p <= file.pageCount; p++) {
+          pageFlatList.push({ fileIndex: fIdx, pageNumber: p });
+        }
+      });
+      if (currentGlobalIndex >= pageFlatList.length) {
+        currentGlobalIndex = 0;
+      }
+    }
+
+    function updateUI() {
+      const totalFiles = loadedFiles.length;
+      const totalLabels = pageFlatList.length;
+
+      if (totalFiles > 0) {
+        summaryBar.style.display = 'flex';
+        fileList.style.display = 'block';
+        placeholderText.style.display = 'none';
+        previewCanvas.style.display = 'block';
+        actionBtn.disabled = false;
+        summaryText.textContent = `${totalFiles} file${totalFiles > 1 ? 's' : ''} • ${totalLabels} total label${totalLabels > 1 ? 's' : ''}`;
+        actionBtn.textContent = `Process & Print / Download (${totalLabels} Labels)`;
+        statusMsg.className = 'msg-ok';
+        statusMsg.textContent = `✓ ${totalFiles} file(s) loaded with ${totalLabels} total labels.`;
+
+        fileList.innerHTML = '';
+        loadedFiles.forEach((f, idx) => {
+          const item = document.createElement('div');
+          item.className = 'file-item';
+          item.innerHTML = `
+            <span class="file-name" title="${f.name}">${f.name}</span>
+            <div style="display:flex; align-items:center;">
+              <span class="file-badge">${f.pageCount} pg</span>
+              <span class="file-remove" onclick="removeFile(${idx})" title="Remove file">✕</span>
+            </div>
+          `;
+          fileList.appendChild(item);
+        });
+      } else {
+        summaryBar.style.display = 'none';
+        fileList.style.display = 'none';
+        placeholderText.style.display = 'block';
+        previewCanvas.style.display = 'none';
+        actionBtn.disabled = true;
+        actionBtn.textContent = 'Process & Print / Download';
+        statusMsg.textContent = '';
+      }
+
+      updateNav();
+    }
+
+    window.removeFile = function(index) {
+      loadedFiles.splice(index, 1);
+      rebuildPageFlatList();
+      updateUI();
+      if (pageFlatList.length > 0) {
+        renderPreview();
+      }
+    };
+
+    function updateNav() {
+      const totalLabels = pageFlatList.length;
+      if (totalLabels === 0) {
+        pageInfo.textContent = 'Label 0 / 0';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+      pageInfo.textContent = `Label ${currentGlobalIndex + 1} / ${totalLabels}`;
+      prevBtn.disabled = currentGlobalIndex <= 0;
+      nextBtn.disabled = currentGlobalIndex >= totalLabels - 1;
+    }
+
+    prevBtn.addEventListener('click', async () => {
+      if (currentGlobalIndex > 0) {
+        currentGlobalIndex--;
+        updateNav();
+        await renderPreview();
+      }
+    });
+
+    nextBtn.addEventListener('click', async () => {
+      if (currentGlobalIndex < pageFlatList.length - 1) {
+        currentGlobalIndex++;
+        updateNav();
+        await renderPreview();
+      }
+    });
+
+    [x1Input, x2Input, y1Input, y2Input].forEach(inp => {
+      inp.addEventListener('input', () => renderPreview());
+    });
+
+    // Preview
+    async function renderPreview() {
+      if (pageFlatList.length === 0) return;
+      const target = pageFlatList[currentGlobalIndex];
+      const fileObj = loadedFiles[target.fileIndex];
+      const page = await fileObj.pdfJsDoc.getPage(target.pageNumber);
+      const vp = page.getViewport({ scale: 2.0 });
+
+      const off = document.createElement('canvas');
+      off.width = vp.width;
+      off.height = vp.height;
+      const ctx = off.getContext('2d');
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+      const x1 = parseFloat(x1Input.value) || 180;
+      const x2 = parseFloat(x2Input.value) || 416;
+      const y1 = parseFloat(y1Input.value) || 460;
+      const y2 = parseFloat(y2Input.value) || 815;
+
+      const cropW = x2 - x1; // 236
+      const cropH = y2 - y1; // 355
+      const scale = 2.0;
+
+      const sx = x1 * scale;
+      const sy = (842 - y2) * scale;
+      const sw = cropW * scale;
+      const sh = cropH * scale;
+
+      previewCanvas.width = 1200;
+      previewCanvas.height = 1800;
+      const pCtx = previewCanvas.getContext('2d');
+
+      pCtx.fillStyle = '#ffffff';
+      pCtx.fillRect(0, 0, 1200, 1800);
+
+      const drawScale = (1200 - 30) / sw;
+      const drawW = sw * drawScale;
+      const drawH = sh * drawScale;
+      const posX = (1200 - drawW) / 2;
+      const posY = (1800 - drawH) / 2;
+
+      pCtx.drawImage(off, sx, sy, sw, sh, posX, posY, drawW, drawH);
+    }
+
+    // Process & Show Popup Modal
+    actionBtn.addEventListener('click', async () => {
+      if (loadedFiles.length === 0) return;
+      actionBtn.disabled = true;
+      actionBtn.textContent = 'Cropping & Merging...';
+
+      try {
+        const outPdf = await PDFLib.PDFDocument.create();
+
+        const x1 = parseFloat(x1Input.value) || 180;
+        const x2 = parseFloat(x2Input.value) || 416;
+        const y1 = parseFloat(y1Input.value) || 460;
+        const y2 = parseFloat(y2Input.value) || 815;
+
+        const cropW = x2 - x1; // 236
+        const cropH = y2 - y1; // 355
+
+        const scale = (TARGET_W - 8) / cropW;
+        const drawW = cropW * scale;
+        const drawH = cropH * scale;
+        const posX = (TARGET_W - drawW) / 2;
+        const posY = (TARGET_H - drawH) / 2;
+
+        let processedCount = 0;
+        const totalToProcess = pageFlatList.length;
+
+        for (let f = 0; f < loadedFiles.length; f++) {
+          const fileObj = loadedFiles[f];
+          const srcPdfDoc = await PDFLib.PDFDocument.load(fileObj.buffer.slice(0));
+
+          for (let p = 0; p < srcPdfDoc.getPageCount(); p++) {
+            processedCount++;
+            statusMsg.textContent = `Processing label ${processedCount} of ${totalToProcess}...`;
+
+            const thermalPage = outPdf.addPage([TARGET_W, TARGET_H]);
+            const srcPage = srcPdfDoc.getPage(p);
+
+            const embedded = await outPdf.embedPage(srcPage, {
+              left: x1,
+              bottom: y1,
+              right: x2,
+              top: y2
+            });
+
+            thermalPage.drawPage(embedded, {
+              x: posX,
+              y: posY,
+              width: drawW,
+              height: drawH
+            });
+          }
+        }
+
+        generatedPdfBytes = await outPdf.save();
+        const blob = new Blob([generatedPdfBytes], { type: 'application/pdf' });
+
+        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = URL.createObjectURL(blob);
+
+        // Open Popup Modal with PDF previewer
+        pdfFrame.src = currentBlobUrl + '#toolbar=0';
+        modalTitle.textContent = `Flipkart 4×6" Labels (${totalToProcess} Total)`;
+        printModal.style.display = 'flex';
+
+        statusMsg.className = 'msg-ok';
+        statusMsg.textContent = `✓ ${totalToProcess} label(s) ready in popup window.`;
+      } catch (err) {
+        console.error(err);
+        statusMsg.className = 'msg-err';
+        statusMsg.textContent = 'Error: ' + err.message;
+      } finally {
+        actionBtn.disabled = false;
+        actionBtn.textContent = `Process & Print / Download (${pageFlatList.length} Labels)`;
+      }
+    });
+
+    // Close Modal
+    modalCloseBtn.addEventListener('click', () => {
+      printModal.style.display = 'none';
+    });
+    printModal.addEventListener('click', (e) => {
+      if (e.target === printModal) {
+        printModal.style.display = 'none';
+      }
+    });
+
+    // Modal: Execute Print Command (Shows Default System Print Dialog)
+    modalPrintBtn.addEventListener('click', () => {
+      if (!currentBlobUrl) return;
+      try {
+        pdfFrame.contentWindow.focus();
+        pdfFrame.contentWindow.print();
+      } catch (err) {
+        // Fallback for browsers with strict iframe printing
+        const win = window.open(currentBlobUrl, '_blank');
+        if (win) {
+          win.focus();
+          win.print();
+        }
+      }
+    });
+
+    // Modal: Execute Download PDF
+    modalDownloadBtn.addEventListener('click', () => {
+      if (!currentBlobUrl) return;
+      const link = document.createElement('a');
+      link.href = currentBlobUrl;
+      link.download = `Flipkart_Thermal_4x6_${pageFlatList.length}_Labels_${Date.now()}.pdf`;
+      link.click();
+    });
+  </script>
+</body>
+</html>
