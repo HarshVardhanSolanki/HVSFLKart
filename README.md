@@ -37,7 +37,7 @@
 
 #### Frameworks, Libraries & Data Science
 <a href="https://skillicons.dev">
-  <img src="https://skillicons.dev/icons?i=sklearn,pandas,numpy,flask,nodejs,react" alt="Libraries and Frameworks" />
+  <img src="https://skillicons.dev/icons?i=sklearn,flask,nodejs,react" alt="Libraries and Frameworks" />
 </a>
 
 #### Tools, Platforms & DevOps
