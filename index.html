@@ -222,8 +222,8 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(2px);
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(3px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -234,7 +234,8 @@
       background: #ffffff;
       border-radius: 14px;
       width: 100%;
-      max-width: 520px;
+      max-width: 780px;
+      max-height: 90vh;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
       display: flex;
       flex-direction: column;
@@ -249,33 +250,109 @@
       justify-content: space-between;
       align-items: center;
     }
+    .modal-header-titles {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
     .modal-header h3 {
       font-size: 0.95rem;
       font-weight: 700;
       color: #1e293b;
     }
+    .modal-header span.sub {
+      font-size: 0.74rem;
+      color: #64748b;
+    }
     .modal-close {
       border: none;
       background: none;
-      font-size: 18px;
+      font-size: 22px;
       cursor: pointer;
       color: #64748b;
       line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px;
     }
-    .modal-close:hover { color: #0f172a; }
+    .modal-close:hover { color: #0f172a; background: #e2e8f0; }
+    
     .modal-body {
       padding: 16px;
+      overflow-y: auto;
+      max-height: 520px;
+      background: #f1f5f9;
+    }
+
+    /* Modal Pages Grid */
+    .modal-pages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+    .modal-page-card {
+      position: relative;
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.15s;
     }
-    .pdf-frame {
+    .modal-page-card:hover {
+      border-color: #2563eb;
+    }
+    
+    /* Cross icon on top-right of each page */
+    .page-cancel-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      background: #ef4444;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+      z-index: 10;
+      transition: background 0.15s, transform 0.15s;
+      line-height: 1;
+    }
+    .page-cancel-btn:hover {
+      background: #dc2626;
+      transform: scale(1.15);
+    }
+
+    .modal-page-canvas {
       width: 100%;
-      height: 460px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      background: #f8fafc;
+      aspect-ratio: 4 / 6;
+      border-radius: 4px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      display: block;
     }
+    .modal-page-info {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      text-align: center;
+    }
+
     .modal-footer {
       padding: 14px 18px;
       background: #f8fafc;
@@ -298,7 +375,9 @@
       justify-content: center;
       gap: 6px;
     }
-    .btn-modal-print:hover { background: #1d4ed8; }
+    .btn-modal-print:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-modal-print:disabled { background: #cbd5e1; cursor: not-allowed; }
+    
     .btn-modal-download {
       flex: 1;
       background: #059669;
@@ -314,7 +393,8 @@
       justify-content: center;
       gap: 6px;
     }
-    .btn-modal-download:hover { background: #047857; }
+    .btn-modal-download:hover:not(:disabled) { background: #047857; }
+    .btn-modal-download:disabled { background: #cbd5e1; cursor: not-allowed; }
   </style>
   <link rel="icon" type="image/png" href="https://avatars.githubusercontent.com/u/145342254?v=4">
 </head>
@@ -402,16 +482,21 @@
     </div>
   </div>
 
-  <!-- Modal Popup: PDF Previewer with Print and Download Buttons -->
+  <!-- Modal Popup: Label Pages Grid with Red Cross Cancel buttons -->
   <div class="modal-overlay" id="printModal">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h3 id="modalTitle">Thermal Labels Ready</h3>
-        <button type="button" class="modal-close" id="modalCloseBtn">&times;</button>
+        <div class="modal-header-titles">
+          <h3 id="modalTitle">Thermal Labels Ready</h3>
+          <span class="sub">Click the red ✕ on any label to exclude it from printing.</span>
+        </div>
+        <button type="button" class="modal-close" id="modalCloseBtn" title="Close popup">&times;</button>
       </div>
+      
       <div class="modal-body">
-        <iframe id="pdfFrame" class="pdf-frame"></iframe>
+        <div class="modal-pages-grid" id="modalPagesContainer"></div>
       </div>
+
       <div class="modal-footer">
         <button type="button" class="btn-modal-print" id="modalPrintBtn">
           <span>🖨️</span> Print Labels
@@ -422,6 +507,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Hidden iframe for reliable printing -->
+  <iframe id="printHiddenFrame" style="display:none; position:fixed; right:0; bottom:0; width:0; height:0; border:0;"></iframe>
 
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -434,8 +522,7 @@
     let loadedFiles = [];
     let pageFlatList = [];
     let currentGlobalIndex = 0;
-    let currentBlobUrl = null;
-    let generatedPdfBytes = null;
+    let activeModalItems = []; // List of items active in the popup
 
     const TARGET_W = 288; // 4 inches = 288 pt
     const TARGET_H = 432; // 6 inches = 432 pt
@@ -461,10 +548,11 @@
     // Modal elements
     const printModal = document.getElementById('printModal');
     const modalTitle = document.getElementById('modalTitle');
-    const pdfFrame = document.getElementById('pdfFrame');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
     const modalPrintBtn = document.getElementById('modalPrintBtn');
     const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+    const modalPagesContainer = document.getElementById('modalPagesContainer');
+    const printHiddenFrame = document.getElementById('printHiddenFrame');
 
     function nudge(id, delta) {
       const el = document.getElementById(id);
@@ -613,13 +701,11 @@
       inp.addEventListener('input', () => renderPreview());
     });
 
-    // Preview
-    async function renderPreview() {
-      if (pageFlatList.length === 0) return;
-      const target = pageFlatList[currentGlobalIndex];
-      const fileObj = loadedFiles[target.fileIndex];
-      const page = await fileObj.pdfJsDoc.getPage(target.pageNumber);
-      const vp = page.getViewport({ scale: 2.0 });
+    // Helper: Draw cropped label to a canvas
+    async function drawCroppedLabel(fileIndex, pageNumber, targetCanvas, w = 300, h = 450) {
+      const fileObj = loadedFiles[fileIndex];
+      const page = await fileObj.pdfJsDoc.getPage(pageNumber);
+      const vp = page.getViewport({ scale: 1.5 });
 
       const off = document.createElement('canvas');
       off.width = vp.width;
@@ -632,97 +718,88 @@
       const y1 = parseFloat(y1Input.value) || 460;
       const y2 = parseFloat(y2Input.value) || 815;
 
-      const cropW = x2 - x1; // 236
-      const cropH = y2 - y1; // 355
-      const scale = 2.0;
+      const cropW = x2 - x1;
+      const cropH = y2 - y1;
+      const scale = 1.5;
 
       const sx = x1 * scale;
       const sy = (842 - y2) * scale;
       const sw = cropW * scale;
       const sh = cropH * scale;
 
-      previewCanvas.width = 1200;
-      previewCanvas.height = 1800;
-      const pCtx = previewCanvas.getContext('2d');
+      targetCanvas.width = w;
+      targetCanvas.height = h;
+      const pCtx = targetCanvas.getContext('2d');
 
       pCtx.fillStyle = '#ffffff';
-      pCtx.fillRect(0, 0, 1200, 1800);
+      pCtx.fillRect(0, 0, w, h);
 
-      const drawScale = (1200 - 30) / sw;
+      const drawScale = (w - 10) / sw;
       const drawW = sw * drawScale;
       const drawH = sh * drawScale;
-      const posX = (1200 - drawW) / 2;
-      const posY = (1800 - drawH) / 2;
+      const posX = (w - drawW) / 2;
+      const posY = (h - drawH) / 2;
 
       pCtx.drawImage(off, sx, sy, sw, sh, posX, posY, drawW, drawH);
     }
 
-    // Process & Show Popup Modal
+    // Left sidebar preview
+    async function renderPreview() {
+      if (pageFlatList.length === 0) return;
+      const target = pageFlatList[currentGlobalIndex];
+      await drawCroppedLabel(target.fileIndex, target.pageNumber, previewCanvas, 1200, 1800);
+    }
+
+    // Process button clicked: Populate Modal with interactive preview cards
     actionBtn.addEventListener('click', async () => {
       if (loadedFiles.length === 0) return;
+      
       actionBtn.disabled = true;
-      actionBtn.textContent = 'Cropping & Merging...';
+      actionBtn.textContent = 'Generating Previews...';
 
       try {
-        const outPdf = await PDFLib.PDFDocument.create();
+        // Clone the list of pages with unique IDs
+        activeModalItems = pageFlatList.map((item, idx) => ({
+          id: idx,
+          fileIndex: item.fileIndex,
+          pageNumber: item.pageNumber,
+          fileName: loadedFiles[item.fileIndex].name
+        }));
 
-        const x1 = parseFloat(x1Input.value) || 180;
-        const x2 = parseFloat(x2Input.value) || 416;
-        const y1 = parseFloat(y1Input.value) || 460;
-        const y2 = parseFloat(y2Input.value) || 815;
-
-        const cropW = x2 - x1; // 236
-        const cropH = y2 - y1; // 355
-
-        const scale = (TARGET_W - 8) / cropW;
-        const drawW = cropW * scale;
-        const drawH = cropH * scale;
-        const posX = (TARGET_W - drawW) / 2;
-        const posY = (TARGET_H - drawH) / 2;
-
-        let processedCount = 0;
-        const totalToProcess = pageFlatList.length;
-
-        for (let f = 0; f < loadedFiles.length; f++) {
-          const fileObj = loadedFiles[f];
-          const srcPdfDoc = await PDFLib.PDFDocument.load(fileObj.buffer.slice(0));
-
-          for (let p = 0; p < srcPdfDoc.getPageCount(); p++) {
-            processedCount++;
-            statusMsg.textContent = `Processing label ${processedCount} of ${totalToProcess}...`;
-
-            const thermalPage = outPdf.addPage([TARGET_W, TARGET_H]);
-            const srcPage = srcPdfDoc.getPage(p);
-
-            const embedded = await outPdf.embedPage(srcPage, {
-              left: x1,
-              bottom: y1,
-              right: x2,
-              top: y2
-            });
-
-            thermalPage.drawPage(embedded, {
-              x: posX,
-              y: posY,
-              width: drawW,
-              height: drawH
-            });
-          }
-        }
-
-        generatedPdfBytes = await outPdf.save();
-        const blob = new Blob([generatedPdfBytes], { type: 'application/pdf' });
-
-        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = URL.createObjectURL(blob);
-
-        // Open Popup Modal with PDF previewer
-        pdfFrame.src = currentBlobUrl + '#toolbar=0';
-        modalTitle.textContent = `Flipkart 4×6" Labels (${totalToProcess} Total)`;
+        modalPagesContainer.innerHTML = '';
+        updateModalHeader();
         printModal.style.display = 'flex';
 
-        statusMsg.className = 'msg-ok';
-        statusMsg.textContent = `✓ ${totalToProcess} label(s) ready in popup window.`;
+        // Render each page card into the modal
+        for (const item of activeModalItems) {
+          const card = document.createElement('div');
+          card.className = 'modal-page-card';
+          card.id = `modal-card-${item.id}`;
+
+          // Top right red cross cancel button
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'page-cancel-btn';
+          cancelBtn.innerHTML = '&times;';
+          cancelBtn.title = 'Cancel this page from print';
+          cancelBtn.onclick = () => cancelPage(item.id);
+
+          const canvas = document.createElement('canvas');
+          canvas.className = 'modal-page-canvas';
+
+          const label = document.createElement('div');
+          label.className = 'modal-page-info';
+          label.textContent = `${item.fileName} (p.${item.pageNumber})`;
+          label.title = label.textContent;
+
+          card.appendChild(cancelBtn);
+          card.appendChild(canvas);
+          card.appendChild(label);
+          modalPagesContainer.appendChild(card);
+
+          // Render canvas in background
+          drawCroppedLabel(item.fileIndex, item.pageNumber, canvas, 400, 600);
+        }
+
       } catch (err) {
         console.error(err);
         statusMsg.className = 'msg-err';
@@ -730,6 +807,129 @@
       } finally {
         actionBtn.disabled = false;
         actionBtn.textContent = `Process & Print / Download (${pageFlatList.length} Labels)`;
+      }
+    });
+
+    // Cancel / Remove specific page from the active print queue
+    window.cancelPage = function(itemId) {
+      const idx = activeModalItems.findIndex(it => it.id === itemId);
+      if (idx !== -1) {
+        activeModalItems.splice(idx, 1);
+        const card = document.getElementById(`modal-card-${itemId}`);
+        if (card) {
+          card.style.transform = 'scale(0.8)';
+          card.style.opacity = '0';
+          setTimeout(() => card.remove(), 180);
+        }
+        updateModalHeader();
+      }
+    };
+
+    function updateModalHeader() {
+      const total = activeModalItems.length;
+      modalTitle.textContent = `Flipkart 4×6" Labels (${total} Active)`;
+      modalPrintBtn.disabled = total === 0;
+      modalDownloadBtn.disabled = total === 0;
+
+      if (total === 0) {
+        modalPagesContainer.innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align:center; color:#64748b; font-weight:600;">All labels have been canceled. Close the popup to re-select files.</div>';
+      }
+    }
+
+    // Build merged PDF bytes from the active (non-canceled) pages
+    async function buildPdfFromActivePages() {
+      if (activeModalItems.length === 0) return null;
+      const outPdf = await PDFLib.PDFDocument.create();
+
+      const x1 = parseFloat(x1Input.value) || 180;
+      const x2 = parseFloat(x2Input.value) || 416;
+      const y1 = parseFloat(y1Input.value) || 460;
+      const y2 = parseFloat(y2Input.value) || 815;
+
+      const cropW = x2 - x1;
+      const cropH = y2 - y1;
+
+      const scale = (TARGET_W - 8) / cropW;
+      const drawW = cropW * scale;
+      const drawH = cropH * scale;
+      const posX = (TARGET_W - drawW) / 2;
+      const posY = (TARGET_H - drawH) / 2;
+
+      for (const item of activeModalItems) {
+        const fileObj = loadedFiles[item.fileIndex];
+        const srcPdfDoc = await PDFLib.PDFDocument.load(fileObj.buffer.slice(0));
+        const srcPage = srcPdfDoc.getPage(item.pageNumber - 1);
+
+        const thermalPage = outPdf.addPage([TARGET_W, TARGET_H]);
+        const embedded = await outPdf.embedPage(srcPage, {
+          left: x1,
+          bottom: y1,
+          right: x2,
+          top: y2
+        });
+
+        thermalPage.drawPage(embedded, {
+          x: posX,
+          y: posY,
+          width: drawW,
+          height: drawH
+        });
+      }
+
+      return await outPdf.save();
+    }
+
+    // Modal: Execute Print on remaining active pages
+    modalPrintBtn.addEventListener('click', async () => {
+      if (activeModalItems.length === 0) return;
+      modalPrintBtn.disabled = true;
+      modalPrintBtn.textContent = 'Preparing Print...';
+
+      try {
+        const pdfBytes = await buildPdfFromActivePages();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        printHiddenFrame.src = blobUrl;
+        printHiddenFrame.onload = () => {
+          try {
+            printHiddenFrame.contentWindow.focus();
+            printHiddenFrame.contentWindow.print();
+          } catch (e) {
+            const win = window.open(blobUrl, '_blank');
+            if (win) { win.focus(); win.print(); }
+          }
+        };
+      } catch (err) {
+        console.error(err);
+        alert('Print failed: ' + err.message);
+      } finally {
+        modalPrintBtn.disabled = false;
+        modalPrintBtn.innerHTML = '<span>🖨️</span> Print Labels';
+      }
+    });
+
+    // Modal: Execute Download on remaining active pages
+    modalDownloadBtn.addEventListener('click', async () => {
+      if (activeModalItems.length === 0) return;
+      modalDownloadBtn.disabled = true;
+      modalDownloadBtn.textContent = 'Generating PDF...';
+
+      try {
+        const pdfBytes = await buildPdfFromActivePages();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Flipkart_Thermal_4x6_${activeModalItems.length}_Labels_${Date.now()}.pdf`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      } catch (err) {
+        console.error(err);
+        alert('Download failed: ' + err.message);
+      } finally {
+        modalDownloadBtn.disabled = false;
+        modalDownloadBtn.innerHTML = '<span>⬇️</span> Download PDF';
       }
     });
 
@@ -741,31 +941,6 @@
       if (e.target === printModal) {
         printModal.style.display = 'none';
       }
-    });
-
-    // Modal: Execute Print Command (Shows Default System Print Dialog)
-    modalPrintBtn.addEventListener('click', () => {
-      if (!currentBlobUrl) return;
-      try {
-        pdfFrame.contentWindow.focus();
-        pdfFrame.contentWindow.print();
-      } catch (err) {
-        // Fallback for browsers with strict iframe printing
-        const win = window.open(currentBlobUrl, '_blank');
-        if (win) {
-          win.focus();
-          win.print();
-        }
-      }
-    });
-
-    // Modal: Execute Download PDF
-    modalDownloadBtn.addEventListener('click', () => {
-      if (!currentBlobUrl) return;
-      const link = document.createElement('a');
-      link.href = currentBlobUrl;
-      link.download = `Flipkart_Thermal_4x6_${pageFlatList.length}_Labels_${Date.now()}.pdf`;
-      link.click();
     });
   </script>
 </body>
