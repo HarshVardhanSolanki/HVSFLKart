@@ -1,263 +1,1006 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Label Cropper — Flipkart · Amazon · Meesho</title>
-<style>
-:root{--bg:#f4f6fb;--surface:#ffffff;--text:#1a1d29;--muted:#6b7280;--border:#e5e7eb;--accent:#6d28d9;--accent2:#9333ea;--fk:#2874f0;--az:#ff9900;--ms:#d9308f;--err:#dc2626;--radius:16px;color-scheme:light dark;}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1117;--surface:#1a1d29;--text:#f3f4f6;--muted:#9ca3af;--border:#2d3140;}}
-:root[data-theme="dark"]{--bg:#0f1117;--surface:#1a1d29;--text:#f3f4f6;--muted:#9ca3af;--border:#2d3140;}
-*{box-sizing:border-box;}
-html,body{height:100%;}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10;}
-.wrap{max-width:680px;margin:0 auto;padding:28px 16px 48px;}
-header{text-align:center;margin-bottom:20px;}
-h1{font-size:1.55rem;margin:0 0 6px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
-p.sub{color:var(--muted);margin:0 0 4px;font-size:.92rem;}
-p.trust{color:var(--muted);margin:0;font-size:.76rem;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
-.label{font-weight:700;margin-bottom:10px;font-size:.84rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
-.sel{display:flex;gap:8px;flex-wrap:wrap;}
-.sel button{flex:1;min-width:76px;border:2px solid var(--border);background:transparent;color:var(--text);padding:11px 6px;border-radius:12px;font-weight:700;cursor:pointer;font-size:.86rem;transition:.15s;}
-.sel button.active[data-k="auto"]{border-color:var(--accent);background:rgba(109,40,217,.14);}
-.sel button.active[data-k="flipkart"]{border-color:var(--fk);background:rgba(40,116,240,.14);}
-.sel button.active[data-k="amazon"]{border-color:var(--az);background:rgba(255,153,0,.16);}
-.sel button.active[data-k="meesho"]{border-color:var(--ms);background:rgba(217,48,143,.14);}
-.drop{border:2px dashed var(--border);border-radius:14px;padding:30px 16px;text-align:center;cursor:pointer;color:var(--muted);transition:.15s;}
-.drop.drag{border-color:var(--accent);background:rgba(109,40,217,.08);}
-.drop .ic{font-size:2.1rem;margin-bottom:4px;}
-.tip{font-size:.76rem;color:var(--muted);margin-top:6px;}
-.filelist{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
-.frow{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:9px 10px;font-size:.82rem;}
-.frow .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.badge{padding:3px 9px;border-radius:999px;font-size:.68rem;font-weight:800;color:#fff;white-space:nowrap;}
-.b-flipkart{background:var(--fk);} .b-amazon{background:var(--az);} .b-meesho{background:var(--ms);} .b-bad{background:var(--err);}
-.frow .rm{cursor:pointer;color:var(--muted);background:none;border:none;font-size:1.05rem;line-height:1;padding:2px 4px;}
-.go{width:100%;padding:15px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:1rem;font-weight:800;cursor:pointer;margin-top:16px;}
-.go:disabled{opacity:.45;cursor:not-allowed;}
-.status{text-align:center;font-size:.85rem;color:var(--muted);margin-top:10px;min-height:1.2em;}
-.spinner{width:15px;height:15px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:middle;margin-right:7px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--err);color:#fff;padding:11px 18px;border-radius:11px;font-size:.84rem;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;max-width:88%;text-align:center;}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px;}
-.modal{background:var(--surface);border-radius:18px;padding:18px;max-width:460px;width:100%;max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:11px;}
-.modal h3{margin:0;}
-.modal iframe{width:100%;height:46vh;border:1px solid var(--border);border-radius:11px;background:#fff;}
-.row2{display:flex;gap:10px;}
-.row2 button{flex:1;padding:13px;border-radius:12px;border:none;font-weight:800;cursor:pointer;font-size:.92rem;}
-.btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--border)!important;}
-.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
-.confirm{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px;}
-.confirm .box{background:var(--surface);padding:22px;border-radius:16px;max-width:320px;text-align:center;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HVS Flipkart Multi-PDF Thermal Cropper & Merger</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    .app-container {
+      width: 100%;
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 860px) {
+      .app-container { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    p.subtitle { font-size: 0.8rem; color: #64748b; margin-bottom: 16px; }
+    
+    .dropzone {
+      border: 2px dashed #94a3b8;
+      border-radius: 10px;
+      padding: 20px 14px;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+    .dropzone:hover { border-color: #2563eb; background: #eff6ff; }
+    .dropzone p { font-size: 0.88rem; font-weight: 600; color: #334155; }
+    .dropzone span { font-size: 0.75rem; color: #64748b; display: block; margin-top: 3px; }
+
+    /* File List */
+    .file-list-container {
+      max-height: 140px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-bottom: 12px;
+      background: #f8fafc;
+      display: none;
+    }
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      padding: 4px 6px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .file-item:last-child { border-bottom: none; }
+    .file-name {
+      font-weight: 600;
+      color: #334155;
+      max-width: 230px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-badge {
+      background: #e2e8f0;
+      color: #475569;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .file-remove {
+      color: #ef4444;
+      cursor: pointer;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      display: none;
+    }
+    .btn-clear {
+      font-size: 0.72rem;
+      color: #dc2626;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
+    /* Pixel Coordinate Grid */
+    .pixel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pixel-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .pixel-box label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .pixel-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pixel-controls input {
+      width: 100%;
+      padding: 5px 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+      text-align: right;
+    }
+    .nudge-btn {
+      padding: 4px 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      background: #fff;
+      cursor: pointer;
+      color: #475569;
+    }
+    .nudge-btn:hover { background: #e2e8f0; }
+
+    .btn-action {
+      width: 100%;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+      transition: background 0.2s;
+    }
+    .btn-action:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-action:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+    
+    .preview-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .canvas-container {
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 4 / 6;
+      background: #ffffff;
+      border: 2px solid #2563eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    canvas#previewCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .placeholder-text { font-size: 0.85rem; color: #94a3b8; padding: 40px 16px; }
+    #statusMsg { font-size: 0.82rem; margin-top: 10px; text-align: center; min-height: 18px; }
+    .msg-ok { color: #16a34a; font-weight: 600; }
+    .msg-err { color: #dc2626; font-weight: 600; }
+
+    /* Modal Popup Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-dialog {
+      background: #ffffff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+    }
+    .modal-header {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header-titles {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .modal-header h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .modal-header span.sub {
+      font-size: 0.74rem;
+      color: #64748b;
+    }
+    .modal-close {
+      border: none;
+      background: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #64748b;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .modal-close:hover { color: #0f172a; background: #e2e8f0; }
+    
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      max-height: 520px;
+      background: #f1f5f9;
+    }
+
+    /* Modal Pages Grid */
+    .modal-pages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+    .modal-page-card {
+      position: relative;
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.15s;
+    }
+    .modal-page-card:hover {
+      border-color: #2563eb;
+    }
+    
+    /* Cross icon on top-right of each page */
+    .page-cancel-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      background: #ef4444;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+      z-index: 10;
+      transition: background 0.15s, transform 0.15s;
+      line-height: 1;
+    }
+    .page-cancel-btn:hover {
+      background: #dc2626;
+      transform: scale(1.15);
+    }
+
+    .modal-page-canvas {
+      width: 100%;
+      aspect-ratio: 4 / 6;
+      border-radius: 4px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      display: block;
+    }
+    .modal-page-info {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal-footer {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 12px;
+    }
+    .btn-modal-print {
+      flex: 1;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 11px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-modal-print:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-modal-print:disabled { background: #cbd5e1; cursor: not-allowed; }
+    
+    .btn-modal-download {
+      flex: 1;
+      background: #059669;
+      color: #ffffff;
+      border: none;
+      padding: 11px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-modal-download:hover:not(:disabled) { background: #047857; }
+    .btn-modal-download:disabled { background: #cbd5e1; cursor: not-allowed; }
+  </style>
+  <link rel="icon" type="image/png" href="https://avatars.githubusercontent.com/u/145342254?v=4">
 </head>
 <body>
-<div class="wrap">
- <header>
-  <h1>📦 Label Cropper</h1>
-  <p class="sub">Strips the tax invoice, keeps only the shipping label</p>
-  <p class="trust">Runs entirely in your browser — files never leave your device</p>
- </header>
 
- <div class="card">
-  <div class="label">Platform</div>
-  <div class="sel" id="sel">
-   <button data-k="auto" class="active">🔍 Auto</button>
-   <button data-k="flipkart">Flipkart</button>
-   <button data-k="amazon">Amazon</button>
-   <button data-k="meesho">Meesho</button>
+  <div class="app-container">
+    <div class="card">
+      <h1>HVS Flipkart Multi-PDF Cropper</h1>
+      <p class="subtitle">Crop and merge multiple Flipkart labels into a single 4×6" thermal PDF.</p>
+
+      <!-- Multi-file dropzone -->
+      <div class="dropzone" id="dropZone">
+        <input type="file" id="fileInput" accept="application/pdf" multiple style="display: none;" />
+        <div style="font-size: 26px; margin-bottom: 4px;">📂</div>
+        <p>Click to select multiple PDFs or drag here</p>
+        <span>Supports multi-file selection</span>
+      </div>
+
+      <!-- Loaded File Summary -->
+      <div class="summary-bar" id="summaryBar">
+        <span id="summaryText">0 files • 0 labels</span>
+        <button type="button" class="btn-clear" id="clearBtn">Clear All</button>
+      </div>
+
+      <!-- File List -->
+      <div class="file-list-container" id="fileList"></div>
+
+      <div class="section-title">Exact CropBox (Points / Pixels)</div>
+      <div class="pixel-grid">
+        <div class="pixel-box">
+          <label>Left (X1)</label>
+          <div class="pixel-controls">
+            <button class="nudge-btn" onclick="nudge('x1', -2)">-</button>
+            <input type="number" id="x1" value="180" />
+            <button class="nudge-btn" onclick="nudge('x1', 2)">+</button>
+          </div>
+        </div>
+
+        <div class="pixel-box">
+          <label>Right (X2)</label>
+          <div class="pixel-controls">
+            <button class="nudge-btn" onclick="nudge('x2', -2)">-</button>
+            <input type="number" id="x2" value="416" />
+            <button class="nudge-btn" onclick="nudge('x2', 2)">+</button>
+          </div>
+        </div>
+
+        <div class="pixel-box">
+          <label>Bottom (Y1)</label>
+          <div class="pixel-controls">
+            <button class="nudge-btn" onclick="nudge('y1', -2)">-</button>
+            <input type="number" id="y1" value="460" />
+            <button class="nudge-btn" onclick="nudge('y1', 2)">+</button>
+          </div>
+        </div>
+
+        <div class="pixel-box">
+          <label>Top (Y2)</label>
+          <div class="pixel-controls">
+            <button class="nudge-btn" onclick="nudge('y2', -2)">-</button>
+            <input type="number" id="y2" value="815" />
+            <button class="nudge-btn" onclick="nudge('y2', 2)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-action" id="actionBtn" disabled>Process & Print / Download</button>
+      <div id="statusMsg"></div>
+    </div>
+
+    <!-- Live Preview -->
+    <div class="card preview-card">
+      <div style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 12px;">
+        4×6" Thermal Label Preview
+      </div>
+      <div class="canvas-container">
+        <div id="placeholderText" class="placeholder-text">Upload PDF(s) to preview the cropped shipping labels.</div>
+        <canvas id="previewCanvas" style="display: none;"></canvas>
+      </div>
+      <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center;">
+        <button id="prevBtn" disabled style="padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px;">Prev</button>
+        <span id="pageInfo" style="font-size: 12px; font-weight: 600; color: #475569;">Label 0 / 0</span>
+        <button id="nextBtn" disabled style="padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px;">Next</button>
+      </div>
+    </div>
   </div>
- </div>
 
- <div class="card">
-  <div class="drop" id="drop">
-   <div class="ic">⬆️</div>
-   <div>Tap to upload or drop label PDF(s) here</div>
-   <div class="tip">Multiple files are merged into one print-ready PDF</div>
+  <!-- Modal Popup: Label Pages Grid with Red Cross Cancel buttons -->
+  <div class="modal-overlay" id="printModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-header-titles">
+          <h3 id="modalTitle">Thermal Labels Ready</h3>
+          <span class="sub">Click the red ✕ on any label to exclude it from printing.</span>
+        </div>
+        <button type="button" class="modal-close" id="modalCloseBtn" title="Close popup">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="modal-pages-grid" id="modalPagesContainer"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-print" id="modalPrintBtn">
+          <span>🖨️</span> Print Labels
+        </button>
+        <button type="button" class="btn-modal-download" id="modalDownloadBtn">
+          <span>⬇️</span> Download PDF
+        </button>
+      </div>
+    </div>
   </div>
-  <input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
-  <div class="filelist" id="filelist"></div>
-  <button class="go" id="go" disabled>✂️ Crop &amp; Prepare Labels</button>
-  <div class="status" id="status"></div>
- </div>
-</div>
 
-<div id="modalRoot"></div>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-// Preset crop presets: "top" = fraction of full page height, measured from the top,
-// that contains the shipping label on each platform's standard combined label+invoice
-// template. Tuned from a real Flipkart sample; Amazon/Meesho are best-effort estimates
-// for their common templates. Pages already sized like a 4x6in label (no invoice
-// attached) are detected automatically and left uncropped.
-const PLAT = {
-  flipkart: { label: 'Flipkart', kw: ['flipkart', 'e-kart', 'ekart logistics', 'fkart'], top: 0.62 },
-  amazon:   { label: 'Amazon',   kw: ['amazon', 'easy ship', 'fulfilled by amazon', 'amazon.in', 'amazon transportation'], top: 0.48 },
-  meesho:   { label: 'Meesho',   kw: ['meesho', 'valmo', 'meesho logistics'], top: 0.45 }
-};
-
-let files = [];
-let selectedPlatform = 'auto';
-
-function detect(text) {
-  for (const k in PLAT) { if (PLAT[k].kw.some(w => text.includes(w))) return k; }
-  return null;
-}
-function validateEntry(e) {
-  if (!e.detected) { e.valid = false; e.plat = null; return; }
-  if (selectedPlatform === 'auto') { e.valid = true; e.plat = e.detected; }
-  else { e.valid = (e.detected === selectedPlatform); e.plat = selectedPlatform; }
-}
-function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function showToast(msg) {
-  const t = document.createElement('div');
-  t.className = 'toast'; t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3800);
-}
-function setStatus(html) { document.getElementById('status').innerHTML = html; }
-function updateGoState() { document.getElementById('go').disabled = !files.some(e => e.valid); }
-
-function renderList() {
-  const wrap = document.getElementById('filelist');
-  wrap.innerHTML = files.map((e, i) => {
-    let badge;
-    if (e.processing) badge = '<span class="spinner"></span>';
-    else if (e.detected && e.valid) badge = '<span class="badge b-' + e.detected + '">' + PLAT[e.detected].label + '</span>';
-    else badge = '<span class="badge b-bad">✕ Unsupported</span>';
-    return '<div class="frow"><span class="name">' + escapeHtml(e.file.name) + '</span>' + badge +
-      '<button class="rm" data-i="' + i + '">✕</button></div>';
-  }).join('');
-}
-document.getElementById('filelist').addEventListener('click', e => {
-  const btn = e.target.closest('.rm'); if (!btn) return;
-  files.splice(Number(btn.dataset.i), 1);
-  renderList(); updateGoState();
-});
-
-async function processFile(entry) {
-  try {
-    const pdf = await pdfjsLib.getDocument({ data: entry.bytes.slice(0) }).promise;
-    const page = await pdf.getPage(1);
-    const tc = await page.getTextContent();
-    const text = tc.items.map(it => it.str).join(' ').toLowerCase();
-    entry.detected = detect(text);
-  } catch (err) { entry.detected = null; }
-  entry.processing = false;
-  validateEntry(entry);
-  if (!entry.valid) {
-    showToast(selectedPlatform === 'auto'
-      ? '"' + entry.file.name + '" isn’t a recognized Flipkart, Amazon or Meesho label.'
-      : '"' + entry.file.name + '" doesn’t look like a ' + PLAT[selectedPlatform].label + ' label.');
-  }
-  renderList(); updateGoState();
-}
-async function addFiles(fileList) {
-  for (const file of fileList) {
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      showToast('"' + file.name + '" skipped — not a PDF.'); continue;
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
     }
-    const bytes = await file.arrayBuffer();
-    const entry = { file, bytes, detected: null, valid: false, processing: true, plat: null };
-    files.push(entry);
-    renderList();
-    await processFile(entry);
-  }
-  updateGoState();
-}
 
-const dropEl = document.getElementById('drop');
-const fileInput = document.getElementById('file');
-dropEl.onclick = () => fileInput.click();
-fileInput.onchange = e => { addFiles(e.target.files); fileInput.value = ''; };
-dropEl.addEventListener('dragover', e => { e.preventDefault(); dropEl.classList.add('drag'); });
-['dragleave', 'drop'].forEach(ev => dropEl.addEventListener(ev, e => { e.preventDefault(); dropEl.classList.remove('drag'); }));
-dropEl.addEventListener('drop', e => { if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+    let loadedFiles = [];
+    let pageFlatList = [];
+    let currentGlobalIndex = 0;
+    let activeModalItems = []; // List of active pages shown in modal
 
-document.getElementById('sel').addEventListener('click', e => {
-  const btn = e.target.closest('button'); if (!btn) return;
-  selectedPlatform = btn.dataset.k;
-  [...document.querySelectorAll('#sel button')].forEach(b => b.classList.toggle('active', b === btn));
-  files.forEach(validateEntry);
-  renderList(); updateGoState();
-});
+    const TARGET_W = 288; // 4 inches = 288 pt
+    const TARGET_H = 432; // 6 inches = 432 pt
 
-document.getElementById('go').addEventListener('click', doCrop);
-async function doCrop() {
-  const valid = files.filter(f => f.valid);
-  if (!valid.length) return;
-  const goBtn = document.getElementById('go'); goBtn.disabled = true;
-  setStatus('<span class="spinner"></span>Cropping &amp; merging labels…');
-  try {
-    const merged = await PDFLib.PDFDocument.create();
-    for (const f of valid) {
-      const src = await PDFLib.PDFDocument.load(f.bytes.slice(0));
-      const idxs = src.getPageIndices();
-      const copied = await merged.copyPages(src, idxs);
-      const topFrac = PLAT[f.plat].top;
-      copied.forEach(p => {
-        merged.addPage(p);
-        const { width, height } = p.getSize();
-        if (height > 460) {
-          const keepH = height * topFrac;
-          p.setMediaBox(0, height - keepH, width, keepH);
-          p.setCropBox(0, height - keepH, width, keepH);
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const summaryBar = document.getElementById('summaryBar');
+    const summaryText = document.getElementById('summaryText');
+    const clearBtn = document.getElementById('clearBtn');
+    const x1Input = document.getElementById('x1');
+    const x2Input = document.getElementById('x2');
+    const y1Input = document.getElementById('y1');
+    const y2Input = document.getElementById('y2');
+    const actionBtn = document.getElementById('actionBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const placeholderText = document.getElementById('placeholderText');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // Modal elements
+    const printModal = document.getElementById('printModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalPrintBtn = document.getElementById('modalPrintBtn');
+    const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+    const modalPagesContainer = document.getElementById('modalPagesContainer');
+
+    function nudge(id, delta) {
+      const el = document.getElementById(id);
+      el.value = parseInt(el.value || 0, 10) + delta;
+      renderPreview();
+    }
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFiles(Array.from(e.target.files)));
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files.length) handleFiles(Array.from(e.dataTransfer.files));
+    });
+
+    clearBtn.addEventListener('click', () => {
+      loadedFiles = [];
+      pageFlatList = [];
+      currentGlobalIndex = 0;
+      updateUI();
+    });
+
+    async function handleFiles(files) {
+      const pdfs = files.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+      if (!pdfs.length) {
+        alert('Please select valid PDF files.');
+        return;
+      }
+
+      statusMsg.textContent = `Reading ${pdfs.length} file(s)...`;
+
+      for (const file of pdfs) {
+        try {
+          const buffer = await file.arrayBuffer();
+          const pdfJsDoc = await pdfjsLib.getDocument({ data: buffer.slice(0) }).promise;
+          loadedFiles.push({
+            name: file.name,
+            buffer: buffer,
+            pdfJsDoc: pdfJsDoc,
+            pageCount: pdfJsDoc.numPages
+          });
+        } catch (err) {
+          console.error(`Error loading ${file.name}:`, err);
+        }
+      }
+
+      rebuildPageFlatList();
+      updateUI();
+      if (pageFlatList.length > 0) {
+        await renderPreview();
+      }
+    }
+
+    function rebuildPageFlatList() {
+      pageFlatList = [];
+      loadedFiles.forEach((file, fIdx) => {
+        for (let p = 1; p <= file.pageCount; p++) {
+          pageFlatList.push({ fileIndex: fIdx, pageNumber: p });
         }
       });
+      if (currentGlobalIndex >= pageFlatList.length) {
+        currentGlobalIndex = 0;
+      }
     }
-    const bytes = await merged.save();
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    openPreview(url, merged.getPageCount(), valid.length);
-    setStatus('');
-  } catch (err) {
-    setStatus('');
-    showToast('Cropping failed: ' + err.message);
-  }
-  goBtn.disabled = false;
-}
 
-function openPreview(url, totalPages, fileCount) {
-  const root = document.getElementById('modalRoot');
-  root.innerHTML =
-    '<div class="modal-bg" id="mbg"><div class="modal">' +
-    '<h3>✅ ' + totalPages + (totalPages > 1 ? ' labels' : ' label') + ' ready</h3>' +
-    '<div class="tip">From ' + fileCount + (fileCount > 1 ? ' files' : ' file') + ' — invoices removed</div>' +
-    '<iframe id="pframe" src="' + url + '"></iframe>' +
-    '<div class="tip">Tip: in the print dialog set Paper Size → 4×6 in and Scale → Actual size / 100% for thermal printers.</div>' +
-    '<div class="row2"><button class="btn-ghost" id="dlBtn">⬇️ Download</button><button class="btn-primary" id="prBtn">🖨️ Print All</button></div>' +
-    '<button class="btn-ghost" id="closeBtn" style="width:100%;">Close</button>' +
-    '</div></div>';
-  document.getElementById('dlBtn').onclick = () => {
-    const a = document.createElement('a'); a.href = url; a.download = 'cropped-labels.pdf'; a.click();
-  };
-  document.getElementById('prBtn').onclick = () => confirmPrint(url, totalPages);
-  document.getElementById('closeBtn').onclick = () => { root.innerHTML = ''; };
-}
-function confirmPrint(url, totalPages) {
-  const box = document.createElement('div');
-  box.className = 'confirm';
-  box.innerHTML =
-    '<div class="box"><h3 style="margin-top:0;">Print ' + totalPages + (totalPages > 1 ? ' labels' : ' label') + '?</h3>' +
-    '<div class="tip">Make sure your 4×6 thermal printer is on and loaded.</div>' +
-    '<div class="row2" style="margin-top:16px;"><button class="btn-ghost" id="cancelPr">Cancel</button><button class="btn-primary" id="confirmPr">Print</button></div></div>';
-  document.body.appendChild(box);
-  box.querySelector('#cancelPr').onclick = () => box.remove();
-  box.querySelector('#confirmPr').onclick = () => {
-    box.remove();
-    const frame = document.getElementById('pframe');
-    try { frame.contentWindow.focus(); frame.contentWindow.print(); }
-    catch (e) { window.open(url, '_blank'); }
-  };
-}
-</script>
+    function updateUI() {
+      const totalFiles = loadedFiles.length;
+      const totalLabels = pageFlatList.length;
+
+      if (totalFiles > 0) {
+        summaryBar.style.display = 'flex';
+        fileList.style.display = 'block';
+        placeholderText.style.display = 'none';
+        previewCanvas.style.display = 'block';
+        actionBtn.disabled = false;
+        summaryText.textContent = `${totalFiles} file${totalFiles > 1 ? 's' : ''} • ${totalLabels} total label${totalLabels > 1 ? 's' : ''}`;
+        actionBtn.textContent = `Process & Print / Download (${totalLabels} Labels)`;
+        statusMsg.className = 'msg-ok';
+        statusMsg.textContent = `✓ ${totalFiles} file(s) loaded with ${totalLabels} total labels.`;
+
+        fileList.innerHTML = '';
+        loadedFiles.forEach((f, idx) => {
+          const item = document.createElement('div');
+          item.className = 'file-item';
+          item.innerHTML = `
+            <span class="file-name" title="${f.name}">${f.name}</span>
+            <div style="display:flex; align-items:center;">
+              <span class="file-badge">${f.pageCount} pg</span>
+              <span class="file-remove" onclick="removeFile(${idx})" title="Remove file">✕</span>
+            </div>
+          `;
+          fileList.appendChild(item);
+        });
+      } else {
+        summaryBar.style.display = 'none';
+        fileList.style.display = 'none';
+        placeholderText.style.display = 'block';
+        previewCanvas.style.display = 'none';
+        actionBtn.disabled = true;
+        actionBtn.textContent = 'Process & Print / Download';
+        statusMsg.textContent = '';
+      }
+
+      updateNav();
+    }
+
+    window.removeFile = function(index) {
+      loadedFiles.splice(index, 1);
+      rebuildPageFlatList();
+      updateUI();
+      if (pageFlatList.length > 0) {
+        renderPreview();
+      }
+    };
+
+    function updateNav() {
+      const totalLabels = pageFlatList.length;
+      if (totalLabels === 0) {
+        pageInfo.textContent = 'Label 0 / 0';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+      pageInfo.textContent = `Label ${currentGlobalIndex + 1} / ${totalLabels}`;
+      prevBtn.disabled = currentGlobalIndex <= 0;
+      nextBtn.disabled = currentGlobalIndex >= totalLabels - 1;
+    }
+
+    prevBtn.addEventListener('click', async () => {
+      if (currentGlobalIndex > 0) {
+        currentGlobalIndex--;
+        updateNav();
+        await renderPreview();
+      }
+    });
+
+    nextBtn.addEventListener('click', async () => {
+      if (currentGlobalIndex < pageFlatList.length - 1) {
+        currentGlobalIndex++;
+        updateNav();
+        await renderPreview();
+      }
+    });
+
+    [x1Input, x2Input, y1Input, y2Input].forEach(inp => {
+      inp.addEventListener('input', () => renderPreview());
+    });
+
+    // Helper: Draw cropped label to a canvas
+    async function drawCroppedLabel(fileIndex, pageNumber, targetCanvas, w = 300, h = 450) {
+      const fileObj = loadedFiles[fileIndex];
+      const page = await fileObj.pdfJsDoc.getPage(pageNumber);
+      const vp = page.getViewport({ scale: 2.0 });
+
+      const off = document.createElement('canvas');
+      off.width = vp.width;
+      off.height = vp.height;
+      const ctx = off.getContext('2d');
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+      const x1 = parseFloat(x1Input.value) || 180;
+      const x2 = parseFloat(x2Input.value) || 416;
+      const y1 = parseFloat(y1Input.value) || 460;
+      const y2 = parseFloat(y2Input.value) || 815;
+
+      const cropW = x2 - x1;
+      const cropH = y2 - y1;
+      const scale = 2.0;
+
+      const sx = x1 * scale;
+      const sy = (842 - y2) * scale;
+      const sw = cropW * scale;
+      const sh = cropH * scale;
+
+      targetCanvas.width = w;
+      targetCanvas.height = h;
+      const pCtx = targetCanvas.getContext('2d');
+
+      pCtx.fillStyle = '#ffffff';
+      pCtx.fillRect(0, 0, w, h);
+
+      const drawScale = (w - 10) / sw;
+      const drawW = sw * drawScale;
+      const drawH = sh * drawScale;
+      const posX = (w - drawW) / 2;
+      const posY = (h - drawH) / 2;
+
+      pCtx.drawImage(off, sx, sy, sw, sh, posX, posY, drawW, drawH);
+    }
+
+    // Left sidebar preview
+    async function renderPreview() {
+      if (pageFlatList.length === 0) return;
+      const target = pageFlatList[currentGlobalIndex];
+      await drawCroppedLabel(target.fileIndex, target.pageNumber, previewCanvas, 1200, 1800);
+    }
+
+    // Process button clicked: Populate Modal with interactive preview cards
+    actionBtn.addEventListener('click', async () => {
+      if (loadedFiles.length === 0) return;
+      
+      actionBtn.disabled = true;
+      actionBtn.textContent = 'Generating Previews...';
+
+      try {
+        activeModalItems = pageFlatList.map((item, idx) => ({
+          id: idx,
+          fileIndex: item.fileIndex,
+          pageNumber: item.pageNumber,
+          fileName: loadedFiles[item.fileIndex].name
+        }));
+
+        modalPagesContainer.innerHTML = '';
+        updateModalHeader();
+        printModal.style.display = 'flex';
+
+        for (const item of activeModalItems) {
+          const card = document.createElement('div');
+          card.className = 'modal-page-card';
+          card.id = `modal-card-${item.id}`;
+
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'page-cancel-btn';
+          cancelBtn.innerHTML = '&times;';
+          cancelBtn.title = 'Cancel this page from print';
+          cancelBtn.onclick = () => cancelPage(item.id);
+
+          const canvas = document.createElement('canvas');
+          canvas.className = 'modal-page-canvas';
+
+          const label = document.createElement('div');
+          label.className = 'modal-page-info';
+          label.textContent = `${item.fileName} (p.${item.pageNumber})`;
+          label.title = label.textContent;
+
+          card.appendChild(cancelBtn);
+          card.appendChild(canvas);
+          card.appendChild(label);
+          modalPagesContainer.appendChild(card);
+
+          drawCroppedLabel(item.fileIndex, item.pageNumber, canvas, 400, 600);
+        }
+
+      } catch (err) {
+        console.error(err);
+        statusMsg.className = 'msg-err';
+        statusMsg.textContent = 'Error: ' + err.message;
+      } finally {
+        actionBtn.disabled = false;
+        actionBtn.textContent = `Process & Print / Download (${pageFlatList.length} Labels)`;
+      }
+    });
+
+    // Cancel / Remove specific page from the active print queue
+    window.cancelPage = function(itemId) {
+      const idx = activeModalItems.findIndex(it => it.id === itemId);
+      if (idx !== -1) {
+        activeModalItems.splice(idx, 1);
+        const card = document.getElementById(`modal-card-${itemId}`);
+        if (card) {
+          card.style.transform = 'scale(0.8)';
+          card.style.opacity = '0';
+          setTimeout(() => card.remove(), 180);
+        }
+        updateModalHeader();
+      }
+    };
+
+    function updateModalHeader() {
+      const total = activeModalItems.length;
+      modalTitle.textContent = `Flipkart 4×6" Labels (${total} Active)`;
+      modalPrintBtn.disabled = total === 0;
+      modalDownloadBtn.disabled = total === 0;
+
+      if (total === 0) {
+        modalPagesContainer.innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align:center; color:#64748b; font-weight:600;">All labels have been canceled. Close the popup to re-select files.</div>';
+      }
+    }
+
+    // Build merged PDF bytes from the active (non-canceled) pages for downloading
+    async function buildPdfFromActivePages() {
+      if (activeModalItems.length === 0) return null;
+      const outPdf = await PDFLib.PDFDocument.create();
+
+      const x1 = parseFloat(x1Input.value) || 180;
+      const x2 = parseFloat(x2Input.value) || 416;
+      const y1 = parseFloat(y1Input.value) || 460;
+      const y2 = parseFloat(y2Input.value) || 815;
+
+      const cropW = x2 - x1;
+      const cropH = y2 - y1;
+
+      const scale = (TARGET_W - 8) / cropW;
+      const drawW = cropW * scale;
+      const drawH = cropH * scale;
+      const posX = (TARGET_W - drawW) / 2;
+      const posY = (TARGET_H - drawH) / 2;
+
+      for (const item of activeModalItems) {
+        const fileObj = loadedFiles[item.fileIndex];
+        const srcPdfDoc = await PDFLib.PDFDocument.load(fileObj.buffer.slice(0));
+        const srcPage = srcPdfDoc.getPage(item.pageNumber - 1);
+
+        const thermalPage = outPdf.addPage([TARGET_W, TARGET_H]);
+        const embedded = await outPdf.embedPage(srcPage, {
+          left: x1,
+          bottom: y1,
+          right: x2,
+          top: y2
+        });
+
+        thermalPage.drawPage(embedded, {
+          x: posX,
+          y: posY,
+          width: drawW,
+          height: drawH
+        });
+      }
+
+      return await outPdf.save();
+    }
+
+    // Modal: Execute Print on remaining active pages (Standard 300 DPI Thermal Print)
+    modalPrintBtn.addEventListener('click', async () => {
+      if (activeModalItems.length === 0) return;
+      modalPrintBtn.disabled = true;
+      modalPrintBtn.innerHTML = '<span>⏳</span> Preparing Print...';
+
+      try {
+        // Remove previous print frame if any
+        let printFrame = document.getElementById('printExecuteFrame');
+        if (printFrame) printFrame.remove();
+
+        // Create an off-screen printable iframe (never display:none)
+        printFrame = document.createElement('iframe');
+        printFrame.id = 'printExecuteFrame';
+        printFrame.style.position = 'fixed';
+        printFrame.style.right = '0';
+        printFrame.style.bottom = '0';
+        printFrame.style.width = '10px';
+        printFrame.style.height = '10px';
+        printFrame.style.opacity = '0.01';
+        printFrame.style.border = '0';
+        printFrame.style.pointerEvents = 'none';
+        document.body.appendChild(printFrame);
+
+        // Render each active label to a 300 DPI high-resolution canvas
+        let pagesHtml = '';
+        for (const item of activeModalItems) {
+          const offCanvas = document.createElement('canvas');
+          await drawCroppedLabel(item.fileIndex, item.pageNumber, offCanvas, 1200, 1800);
+          const dataUrl = offCanvas.toDataURL('image/png');
+          pagesHtml += `
+            <div class="print-page">
+              <img src="${dataUrl}" />
+            </div>
+          `;
+        }
+
+        const pDoc = printFrame.contentWindow.document;
+        pDoc.open();
+        pDoc.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Flipkart Thermal Labels</title>
+            <style>
+              @page {
+                size: 4in 6in;
+                margin: 0;
+              }
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              body { margin: 0; padding: 0; background: #fff; }
+              .print-page {
+                width: 4in;
+                height: 6in;
+                page-break-after: always;
+                break-after: page;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+              .print-page:last-child {
+                page-break-after: avoid;
+                break-after: avoid;
+              }
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                display: block;
+              }
+            </style>
+          </head>
+          <body>
+            ${pagesHtml}
+          </body>
+          </html>
+        `);
+        pDoc.close();
+
+        // Trigger system print dialog
+        setTimeout(() => {
+          printFrame.contentWindow.focus();
+          printFrame.contentWindow.print();
+          modalPrintBtn.disabled = false;
+          modalPrintBtn.innerHTML = '<span>🖨️</span> Print Labels';
+        }, 300);
+
+      } catch (err) {
+        console.error('Print error:', err);
+        alert('Could not open print dialog: ' + err.message);
+        modalPrintBtn.disabled = false;
+        modalPrintBtn.innerHTML = '<span>🖨️</span> Print Labels';
+      }
+    });
+
+    // Modal: Execute Download on remaining active pages
+    modalDownloadBtn.addEventListener('click', async () => {
+      if (activeModalItems.length === 0) return;
+      modalDownloadBtn.disabled = true;
+      modalDownloadBtn.textContent = 'Generating PDF...';
+
+      try {
+        const pdfBytes = await buildPdfFromActivePages();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Flipkart_Thermal_4x6_${activeModalItems.length}_Labels_${Date.now()}.pdf`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      } catch (err) {
+        console.error(err);
+        alert('Download failed: ' + err.message);
+      } finally {
+        modalDownloadBtn.disabled = false;
+        modalDownloadBtn.innerHTML = '<span>⬇️</span> Download PDF';
+      }
+    });
+
+    // Close Modal
+    modalCloseBtn.addEventListener('click', () => {
+      printModal.style.display = 'none';
+    });
+    printModal.addEventListener('click', (e) => {
+      if (e.target === printModal) {
+        printModal.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
