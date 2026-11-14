@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Label Cropper — Flipkart · Amazon · Meesho</title>
+<style>
+:root{--bg:#f1f5f9;--sf:#fff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;--ac:#2563eb;--ac2:#1d4ed8;--fk:#2874f0;--az:#ff9900;--ms:#d9308f;--er:#dc2626;--ok:#16a34a;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1117;--sf:#1a1d29;--tx:#f3f4f6;--mu:#9ca3af;--bd:#2d3140}}
+:root[data-theme="dark"]{--bg:#0f1117;--sf:#1a1d29;--tx:#f3f4f6;--mu:#9ca3af;--bd:#2d3140}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:20px 14px;display:flex;justify-content:center}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.app{width:100%;max-width:940px;display:grid;grid-template-columns:390px 1fr;gap:18px;align-items:start}
+@media(max-width:840px){.app{grid-template-columns:1fr}}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+h1{font-size:1.2rem;margin-bottom:3px}
+.sub{font-size:.78rem;color:var(--mu);margin-bottom:14px}
+.lb{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);margin-bottom:7px}
+.sel{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.sel button{border:2px solid var(--bd);background:transparent;color:var(--tx);padding:9px 2px;border-radius:10px;font-weight:700;font-size:.78rem;cursor:pointer}
+.sel .on[data-k=auto]{border-color:var(--ac);background:rgba(37,99,235,.12)}
+.sel .on[data-k=flipkart]{border-color:var(--fk);background:rgba(40,116,240,.14)}
+.sel .on[data-k=amazon]{border-color:var(--az);background:rgba(255,153,0,.16)}
+.sel .on[data-k=meesho]{border-color:var(--ms);background:rgba(217,48,143,.14)}
+.drop{border:2px dashed var(--mu);border-radius:12px;padding:20px 12px;text-align:center;cursor:pointer;background:var(--bg);margin-bottom:12px}
+.drop.dg,.drop:hover{border-color:var(--ac)}
+.drop p{font-size:.86rem;font-weight:600}.drop span{font-size:.72rem;color:var(--mu)}
+.sum{display:none;justify-content:space-between;align-items:center;font-size:.8rem;font-weight:600;padding:6px 10px;margin-bottom:10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.35);border-radius:7px}
+.sum button{background:none;border:none;color:var(--er);font-weight:700;font-size:.72rem;cursor:pointer}
+.fl{max-height:150px;overflow-y:auto;margin-bottom:12px}
+.fr{display:flex;align-items:center;gap:6px;font-size:.78rem;padding:5px 2px;border-bottom:1px solid var(--bd)}
+.fr .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.bg{padding:2px 8px;border-radius:99px;font-size:.66rem;font-weight:800;color:#fff;white-space:nowrap}
+.b-flipkart{background:var(--fk)}.b-amazon{background:var(--az)}.b-meesho{background:var(--ms)}.b-bad{background:var(--er)}
+.pg{font-size:.68rem;color:var(--mu)}
+.rm{background:none;border:none;color:var(--er);font-weight:700;cursor:pointer;font-size:1rem}
+.go{width:100%;background:var(--ac);color:#fff;border:none;padding:13px;border-radius:9px;font-size:.95rem;font-weight:700;cursor:pointer}
+.go:hover:not(:disabled){background:var(--ac2)}.go:disabled{opacity:.4;cursor:not-allowed}
+.st{font-size:.8rem;text-align:center;margin-top:9px;min-height:16px;color:var(--mu)}
+.sp{width:13px;height:13px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;display:inline-block;animation:r .7s linear infinite;vertical-align:middle}
+@keyframes r{to{transform:rotate(360deg)}}
+.pv{display:flex;flex-direction:column;align-items:center}
+#edw{width:100%;display:none;flex-direction:column;align-items:center}
+.ed{position:relative;width:calc(100% - 18px);max-width:340px;margin:9px;background:#fff;user-select:none}
+.cl{position:absolute;inset:0;overflow:hidden}
+.cl canvas{width:100%;height:100%;display:block}
+.dm{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.5);pointer-events:none}
+.cb{position:absolute;border:2px solid var(--ac);cursor:move;touch-action:none}
+.h{position:absolute;width:14px;height:14px;background:#fff;border:2px solid var(--ac);border-radius:3px}
+.h[data-h=nw]{left:-9px;top:-9px;cursor:nwse-resize}.h[data-h=n]{left:calc(50% - 8px);top:-9px;cursor:ns-resize}
+.h[data-h=ne]{right:-9px;top:-9px;cursor:nesw-resize}.h[data-h=e]{right:-9px;top:calc(50% - 8px);cursor:ew-resize}
+.h[data-h=se]{right:-9px;bottom:-9px;cursor:nwse-resize}.h[data-h=s]{left:calc(50% - 8px);bottom:-9px;cursor:ns-resize}
+.h[data-h=sw]{left:-9px;bottom:-9px;cursor:nesw-resize}.h[data-h=w]{left:-9px;top:calc(50% - 8px);cursor:ew-resize}
+.rd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;margin-top:10px}
+.rd div{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:5px;text-align:center}
+.rd b{display:block;font-size:.62rem;color:var(--mu)}.rd span{font-size:.92rem;font-weight:700}
+.dim{font-size:.74rem;color:var(--mu);margin-top:8px;text-align:center}
+.tr{display:flex;gap:12px;align-items:center;margin-top:12px;width:100%}
+.tr canvas{width:120px;aspect-ratio:4/6;border:2px solid var(--ac);border-radius:6px;background:#fff;flex:none}
+.rs{margin:6px 0;padding:6px 12px;border:1px solid var(--bd);border-radius:7px;background:var(--sf);color:var(--tx);font-weight:600;font-size:.78rem;cursor:pointer}
+.ph{font-size:.84rem;color:#94a3b8;padding:30px 16px;text-align:center}
+.nav{margin-top:12px;display:flex;gap:10px;align-items:center;font-size:.78rem;font-weight:600}
+.nav button{padding:4px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);cursor:pointer}
+.nav button:disabled{opacity:.4}
+.ov{position:fixed;inset:0;background:rgba(15,23,42,.75);display:none;align-items:center;justify-content:center;z-index:50;padding:14px}
+.md{background:var(--sf);border-radius:14px;width:100%;max-width:780px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--bd)}
+.mh{padding:13px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.mh h3{font-size:.95rem}.mh span{font-size:.72rem;color:var(--mu)}
+.mx{border:none;background:none;font-size:24px;line-height:1;color:var(--mu);cursor:pointer;padding:2px 8px}
+.mb{padding:14px;overflow-y:auto;background:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.mc{position:relative;background:var(--sf);border:2px solid var(--bd);border-radius:8px;padding:8px;transition:transform .18s,opacity .18s}
+.mc:hover{border-color:var(--ac)}
+.mc canvas{width:100%;aspect-ratio:4/6;display:block;border:1px solid var(--bd);border-radius:4px;background:#fff}
+.mc .i{font-size:.72rem;font-weight:600;margin-top:5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mc .x{position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:#ef4444;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
+.mf{padding:12px 16px;border-top:1px solid var(--bd);display:flex;gap:10px}
+.mf button{flex:1;border:none;color:#fff;padding:11px;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer}
+.mf button:disabled{opacity:.4;cursor:not-allowed}
+.pr{background:var(--ac)}.dl{background:#059669}
+.tt{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--er);color:#fff;padding:10px 16px;border-radius:10px;font-size:.82rem;z-index:200;max-width:88%;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,.25)}
+.rgi{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx);font-size:.85rem;margin-bottom:12px}
+.mc .rt{position:absolute;top:5px;left:5px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:var(--ac);color:#fff;font-size:13px;font-weight:700;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="card">
+  <h1>📦 Label Cropper</h1>
+  <p class="sub">Crops &amp; merges shipping labels to 4×6″ thermal size. Runs in your browser.</p>
+  <div class="lb">Platform</div>
+  <div class="sel" id="sel">
+   <button data-k="auto" class="on">🔍 Auto</button><button data-k="flipkart">Flipkart</button><button data-k="amazon">Amazon</button><button data-k="meesho">Meesho</button>
+  </div>
+  <div class="drop" id="drop"><div style="font-size:26px">📂</div><p>Tap to select PDFs or drag here</p><span>Multiple files are merged automatically</span></div>
+  <input type="file" id="fi" accept="application/pdf,.pdf" multiple hidden>
+  <div class="sum" id="sum"><span></span><button id="clr">Clear all</button></div>
+  <div class="fl" id="fl"></div>
+  <div class="lb">Page range</div><input class="rgi" id="rg" placeholder="e.g. 1-10, 15 (blank = all labels)" autocomplete="off"><button class="go" id="go" disabled>✂️ Crop &amp; Review</button>
+  <div class="st" id="st"></div>
+ </div>
+ <div class="card pv">
+  <div class="lb">Crop editor · 4×6″ result</div>
+  <div class="ph" id="ph">Upload label PDF(s) to preview and crop the labels.</div>
+  <div id="edw">
+   <div class="ed" id="ed"><div class="cl"><canvas id="pc"></canvas><div class="dm" id="dm"></div></div>
+    <div class="cb" id="cb"><i class="h" data-h="nw"></i><i class="h" data-h="n"></i><i class="h" data-h="ne"></i><i class="h" data-h="e"></i><i class="h" data-h="se"></i><i class="h" data-h="s"></i><i class="h" data-h="sw"></i><i class="h" data-h="w"></i></div></div>
+   <div class="nav"><button id="prev" disabled>Prev</button><span id="pi">Label 0 / 0</span><button id="next" disabled>Next</button></div>
+   <div class="rd" id="rd"></div>
+   <div class="dim" id="dim"></div>
+   <div class="tr"><canvas id="tc"></canvas><div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="rs" id="rs">↺ Reset crop</button><button class="rs" id="r1">↻ Rotate label</button><button class="rs" id="ra">↻ Rotate all</button></div><p class="dim" style="text-align:left;margin:0">Drag the box to move it, pull any of the 8 handles to resize. Edits apply to every label of this platform.</p></div></div>
+  </div>
+ </div>
+</div>
+
+<div class="ov" id="ov"><div class="md">
+ <div class="mh"><div><h3 id="mt">Labels ready</h3><span>Tap the red ✕ on a label to leave it out of the print.</span></div><button class="mx" id="mx">&times;</button></div>
+ <div class="mb"><div class="grid" id="grid"></div></div>
+ <div class="mf"><button class="pr" id="pr">🖨️ Print All</button><button class="dl" id="dl">⬇️ Download PDF</button></div>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const $ = id => document.getElementById(id);
+
+// Flipkart and Meesho boxes = [x1, y1, x2, y2] in PDF points on an A4 page (595x842, origin bottom-left),
+// taken from the label's real position. Amazon has no fixed box: the label's bounds
+// are detected from the page content (first ink block from the top, ended by a blank gap).
+const PLAT = {
+  flipkart: { label: 'Flipkart', kw: ['flipkart', 'e-kart', 'ekart'], box: [180, 460, 416, 815] },
+  amazon:   { label: 'Amazon',   kw: ['amazon', 'easy ship', 'amazon transportation'] },
+  meesho:   { label: 'Meesho',   kw: ['meesho', 'valmo'], box: [0, 489, 595, 836] }
+};
+let files = [], flat = [], cur = 0, active = [], selP = 'auto', total = 0, range = '';
+
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m, ok) { const t = document.createElement('div'); t.className = 'tt'; if (ok) t.style.background = 'var(--ok)'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3800); }
+function detect(t) { for (const k in PLAT) if (PLAT[k].kw.some(w => t.includes(w))) return k; return null; }
+function validate(f) {
+  const old = f.plat;
+  if (f.busy || !f.det) { f.valid = false; f.plat = null; return; }
+  f.plat = selP === 'auto' ? f.det : selP;
+  f.valid = f.det === f.plat;
+  if (old !== f.plat) f.boxes = {};
+}
+function parseRange(t, n) {
+  t = t.trim(); if (!t) return null;
+  const set = new Set();
+  t.split(',').forEach(x => {
+    const m = x.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/); if (!m) return;
+    let a = +m[1], b = m[2] ? +m[2] : a; if (a > b) [a, b] = [b, a];
+    for (let i = Math.max(a, 1); i <= Math.min(b, n); i++) set.add(i);
+  });
+  return set;
+}
+function rebuild() {
+  const all = [];
+  files.forEach(f => { if (f.valid) for (let p = 1; p <= f.n; p++) all.push({ f, p }); });
+  total = all.length;
+  const st = parseRange(range, all.length);
+  flat = st ? all.filter((_, i) => st.has(i + 1)) : all;
+  if (cur >= flat.length) cur = 0;
+}
+
+// Detect the label area on pages without a preset: scan the page for the first block of ink
+// from the top and stop at the first blank gap of 16pt or more, then trim to its columns.
+async function autoBox(page, W, H) {
+  const vp = page.getViewport({ scale: 1 });
+  const c = document.createElement('canvas'); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  await page.render({ canvasContext: x, viewport: vp }).promise;
+  const w = c.width, h = c.height, d = x.getImageData(0, 0, w, h).data;
+  const ink = i => d[i] < 230 || d[i + 1] < 230 || d[i + 2] < 230;
+  const rows = new Uint8Array(h);
+  for (let y = 0; y < h; y++) for (let px = 0; px < w; px++) if (ink((y * w + px) * 4)) { rows[y] = 1; break; }
+  const top = rows.indexOf(1);
+  if (top < 0) return { x1: 0, y1: 0, x2: W, y2: H, H };
+  let bot = top, gap = 0;
+  for (let y = top; y < h; y++) { if (rows[y]) { bot = y; gap = 0; } else if (++gap >= 16) break; }
+  if (bot - top > h * 0.8) bot = top + Math.round(h * 0.5);
+  let minX = w, maxX = 0;
+  for (let y = top; y <= bot; y++) for (let px = 0; px < w; px++) if (ink((y * w + px) * 4)) { if (px < minX) minX = px; if (px > maxX) maxX = px; }
+  const pad = 4;
+  return { x1: Math.max(0, minX - pad), x2: Math.min(W, maxX + pad), y2: Math.min(H, H - top + pad), y1: Math.max(0, H - bot - pad), H };
+}
+async function defBox(f, p) {
+  if (f.boxes[p]) return f.boxes[p];
+  const page = await f.doc.getPage(p), vp = page.getViewport({ scale: 1 }), W = vp.width, H = vp.height;
+  let b;
+  if (H < 500) b = { x1: 0, y1: 0, x2: W, y2: H };           // already label-sized (no invoice attached)
+  else if (PLAT[f.plat].box) { const q = PLAT[f.plat].box; b = { x1: q[0] * W / 595, y1: q[1] * H / 842, x2: q[2] * W / 595, y2: q[3] * H / 842 }; }
+  else b = await autoBox(page, W, H);
+  return (f.boxes[p] = { x1: b.x1, y1: b.y1, x2: b.x2, y2: b.y2, W, H });
+}
+// User edits (OV) are stored per platform as fractions of the page, so they apply to every label of that platform
+const OV = {};
+try { Object.assign(OV, JSON.parse(localStorage.getItem('lc_ov') || '{}')); } catch (e) {}
+function saveOV() { try { localStorage.setItem('lc_ov', JSON.stringify(OV)); } catch (e) {} }
+async function boxFor(f, p) {
+  const d = await defBox(f, p), o = OV[f.plat];
+  return o ? { x1: o.x1 * d.W, y1: o.y1 * d.H, x2: o.x2 * d.W, y2: o.y2 * d.H, W: d.W, H: d.H } : d;
+}
+const rotOf = (f, p) => (f.rot && f.rot[p]) || 0;
+const isLand = (cw, ch, rot) => (rot % 180 ? ch > cw : cw > ch);
+// Output size for a crop of cw x ch rotated by rot: 4x6 portrait or 6x4 landscape, long side L
+function dims(cw, ch, rot, L, m) {
+  const sw = rot % 180 ? ch : cw, sh = rot % 180 ? cw : ch, land = sw > sh;
+  const w = Math.round(land ? L : L * 2 / 3), h = Math.round(land ? L * 2 / 3 : L);
+  return { w, h, land, k: Math.min((w - 2 * m) / sw, (h - 2 * m) / sh) };
+}
+// Fit a source region onto cv, rotated clockwise by rot degrees
+function paint(src, sx, sy, sw, sh, cv, L, m, rot) {
+  const d = dims(sw, sh, rot, L, m);
+  cv.width = d.w; cv.height = d.h; cv.style.aspectRatio = d.w + ' / ' + d.h;
+  const c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, d.w, d.h);
+  c.translate(d.w / 2, d.h / 2); c.rotate(rot * Math.PI / 180);
+  c.drawImage(src, sx, sy, sw, sh, -sw * d.k / 2, -sh * d.k / 2, sw * d.k, sh * d.k);
+}
+// Render only the crop box of a page, then paint it (rotated) onto cv
+async function draw(f, p, rot, cv, L, m) {
+  const b = await boxFor(f, p), page = await f.doc.getPage(p), cw = b.x2 - b.x1, ch = b.y2 - b.y1, d = dims(cw, ch, rot, L, m);
+  const t = document.createElement('canvas'); t.width = Math.ceil(cw * d.k); t.height = Math.ceil(ch * d.k);
+  const x = t.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, t.width, t.height);
+  await page.render({ canvasContext: x, viewport: page.getViewport({ scale: d.k, offsetX: -b.x1 * d.k, offsetY: -(b.H - b.y2) * d.k }) }).promise;
+  paint(t, 0, 0, t.width, t.height, cv, L, m, rot);
+}
+
+function ui() {
+  const n = flat.length, ok = files.filter(f => f.valid).length;
+  $('sum').style.display = files.length ? 'flex' : 'none';
+  $('sum').firstElementChild.textContent = ok + ' valid file' + (ok === 1 ? '' : 's') + ' · ' + n + (n !== total ? ' of ' + total : '') + ' label' + (n === 1 ? '' : 's');
+  $('fl').innerHTML = files.map((f, i) => {
+    const b = f.busy ? '<span class="sp"></span>' : (f.valid ? '<span class="bg b-' + f.plat + '">' + PLAT[f.plat].label + '</span>' : '<span class="bg b-bad">✕ Wrong / unknown</span>');
+    return '<div class="fr"><span class="n" title="' + esc(f.name) + '">' + esc(f.name) + '</span>' + b + '<span class="pg">' + (f.n || 0) + ' pg</span><button class="rm" data-i="' + i + '">✕</button></div>';
+  }).join('');
+  $('go').disabled = !n;
+  $('go').textContent = n ? '✂️ Crop & Review (' + n + ')' : '✂️ Crop & Review';
+  $('ph').style.display = n ? 'none' : 'block';
+  $('edw').style.display = n ? 'flex' : 'none';
+  $('pi').textContent = 'Label ' + (n ? cur + 1 : 0) + ' / ' + n;
+  $('prev').disabled = cur <= 0; $('next').disabled = cur >= n - 1;
+  if (n) edit();
+}
+function refresh() { files.forEach(validate); rebuild(); ui(); }
+
+async function addFiles(list) {
+  for (const file of list) {
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) { toast('“' + file.name + '” skipped — not a PDF.'); continue; }
+    const f = { name: file.name, buffer: await file.arrayBuffer(), busy: true, boxes: {}, n: 0 };
+    files.push(f); ui();
+    try {
+      f.doc = await pdfjsLib.getDocument({ data: f.buffer.slice(0) }).promise;
+      f.n = f.doc.numPages;
+      const tc = await (await f.doc.getPage(1)).getTextContent();
+      f.det = detect(tc.items.map(i => i.str).join(' ').toLowerCase());
+    } catch (e) { f.det = null; }
+    f.busy = false; validate(f);
+    if (!f.valid) toast(selP === 'auto' ? '“' + f.name + '” isn’t a Flipkart, Amazon or Meesho label.' : '“' + f.name + '” doesn’t look like a ' + PLAT[selP].label + ' label.');
+    refresh();
+  }
+}
+$('drop').onclick = () => $('fi').click();
+$('fi').onchange = e => { addFiles([...e.target.files]); e.target.value = ''; };
+$('drop').addEventListener('dragover', e => { e.preventDefault(); $('drop').classList.add('dg'); });
+$('drop').addEventListener('dragleave', () => $('drop').classList.remove('dg'));
+$('drop').addEventListener('drop', e => { e.preventDefault(); $('drop').classList.remove('dg'); addFiles([...e.dataTransfer.files]); });
+$('clr').onclick = () => { files = []; cur = 0; refresh(); };
+$('fl').addEventListener('click', e => { const b = e.target.closest('.rm'); if (b) { files.splice(+b.dataset.i, 1); refresh(); } });
+$('sel').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  selP = b.dataset.k;
+  document.querySelectorAll('#sel button').forEach(x => x.classList.toggle('on', x === b));
+  refresh();
+});
+$('prev').onclick = () => { if (cur > 0) { cur--; ui(); } };
+$('next').onclick = () => { if (cur < flat.length - 1) { cur++; ui(); } };
+
+// Interactive crop editor: full page with a draggable box and 8 resize handles.
+// Coordinates are PDF points (1pt = 1px at 100%), origin bottom-left; the screen y axis points down.
+let E = null, et = 0, dr = null;
+const cp = (v, a, b) => Math.max(a, Math.min(b, v));
+async function bitmap(f, p) {
+  f.bm = f.bm || {};
+  if (f.bm[p]) return f.bm[p];
+  const page = await f.doc.getPage(p), vp = page.getViewport({ scale: 2 });
+  const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  await page.render({ canvasContext: x, viewport: vp }).promise;
+  return (f.bm[p] = c);
+}
+async function edit() {
+  const t = ++et, it = flat[cur], b = await boxFor(it.f, it.p), bm = await bitmap(it.f, it.p);
+  if (t !== et) return;
+  E = { f: it.f, p: it.p, W: b.W, H: b.H, bm, b };
+  const c = $('pc'); c.width = bm.width; c.height = bm.height; c.getContext('2d').drawImage(bm, 0, 0);
+  $('ed').style.aspectRatio = b.W + ' / ' + b.H;
+  sync();
+}
+function sync() {
+  const b = E.b, W = E.W, H = E.H, cw = b.x2 - b.x1, ch = b.y2 - b.y1;
+  [$('cb'), $('dm')].forEach(el => {
+    el.style.left = b.x1 / W * 100 + '%'; el.style.top = (H - b.y2) / H * 100 + '%';
+    el.style.width = cw / W * 100 + '%'; el.style.height = ch / H * 100 + '%';
+  });
+  const r = Math.round, rt = rotOf(E.f, E.p), land = isLand(cw, ch, rt);
+  $('rd').innerHTML = [['X1', b.x1], ['X2', b.x2], ['Y1', b.y1], ['Y2', b.y2]].map(v => '<div><b>' + v[0] + '</b><span>' + r(v[1]) + '</span></div>').join('');
+  $('dim').textContent = 'Crop ' + r(cw) + ' × ' + r(ch) + ' px · Page ' + r(W) + ' × ' + r(H) + ' px' + (rt ? ' · Rotated ' + rt + '°' : '') + ' · ' + (land ? 'Landscape 6×4″' : 'Portrait 4×6″');
+  paint(E.bm, b.x1 * 2, (H - b.y2) * 2, cw * 2, ch * 2, $('tc'), 360, 6, rt);
+  $('tc').style.width = land ? '170px' : '115px';
+}
+$('cb').addEventListener('pointerdown', e => {
+  if (!E) return;
+  dr = { h: e.target.dataset.h || 'm', x: e.clientX, y: e.clientY, b: { ...E.b } };
+  $('cb').setPointerCapture(e.pointerId); e.preventDefault();
+});
+$('cb').addEventListener('pointermove', e => {
+  if (!dr || !E) return;
+  const r = $('ed').getBoundingClientRect(), dx = (e.clientX - dr.x) / r.width * E.W, dy = (e.clientY - dr.y) / r.height * E.H, o = dr.b, M = 20;
+  let x1 = o.x1, y1 = o.y1, x2 = o.x2, y2 = o.y2;
+  if (dr.h === 'm') {
+    const w = x2 - x1, h = y2 - y1;
+    x1 = cp(o.x1 + dx, 0, E.W - w); x2 = x1 + w; y1 = cp(o.y1 - dy, 0, E.H - h); y2 = y1 + h;
+  } else {
+    if (dr.h.includes('w')) x1 = cp(o.x1 + dx, 0, o.x2 - M);
+    if (dr.h.includes('e')) x2 = cp(o.x2 + dx, o.x1 + M, E.W);
+    if (dr.h.includes('n')) y2 = cp(o.y2 - dy, o.y1 + M, E.H);
+    if (dr.h.includes('s')) y1 = cp(o.y1 - dy, 0, o.y2 - M);
+  }
+  E.b = { x1, y1, x2, y2 };
+  OV[E.f.plat] = { x1: x1 / E.W, y1: y1 / E.H, x2: x2 / E.W, y2: y2 / E.H };
+  sync();
+});
+['pointerup', 'pointercancel'].forEach(ev => $('cb').addEventListener(ev, () => { if (dr) saveOV(); dr = null; }));
+$('rs').onclick = () => { if (E) { delete OV[E.f.plat]; saveOV(); edit(); } };
+
+// Page range (label numbers across all uploaded files) and rotation
+$('rg').oninput = e => { range = e.target.value; cur = 0; refresh(); };
+function setRot(f, p, r) { f.rot = f.rot || {}; f.rot[p] = r; }
+$('r1').onclick = () => { if (E) { setRot(E.f, E.p, (rotOf(E.f, E.p) + 90) % 360); sync(); } };
+$('ra').onclick = () => {
+  if (!E) return;
+  const r = (rotOf(E.f, E.p) + 90) % 360;
+  files.forEach(f => { for (let p = 1; p <= f.n; p++) setRot(f, p, r); });
+  sync();
+};
+// Split the active labels by output orientation
+async function groups() {
+  const g = { P: [], L: [] };
+  for (const it of active) {
+    const b = await boxFor(it.f, it.p);
+    (isLand(b.x2 - b.x1, b.y2 - b.y1, rotOf(it.f, it.p)) ? g.L : g.P).push(it);
+  }
+  return g;
+}
+function ask(msg, ok) {
+  return new Promise(res => {
+    const o = document.createElement('div'); o.className = 'ov'; o.style.display = 'flex'; o.style.zIndex = 90;
+    o.innerHTML = '<div class="md" style="max-width:340px;padding:20px;text-align:center"><p style="font-weight:700;margin-bottom:6px">' + msg + '</p><p class="dim" style="margin:0 0 14px">Make sure the thermal printer is on and its paper size matches.</p><div class="mf" style="border:0;padding:0"><button class="dl" style="background:var(--bd);color:var(--tx)">Cancel</button><button class="pr">' + ok + '</button></div></div>';
+    document.body.appendChild(o);
+    const bt = o.querySelectorAll('button');
+    bt[0].onclick = () => { o.remove(); res(false); };
+    bt[1].onclick = () => { o.remove(); res(true); };
+  });
+}
+
+// Review popup
+$('go').onclick = () => {
+  active = flat.map((x, i) => ({ id: i, f: x.f, p: x.p }));
+  $('grid').innerHTML = '';
+  $('ov').style.display = 'flex';
+  head();
+  active.forEach(it => {
+    const card = document.createElement('div'); card.className = 'mc'; card.id = 'mc' + it.id;
+    card.innerHTML = '<button class="rt" title="Rotate 90°">↻</button><button class="x" title="Leave out of print">&times;</button><canvas></canvas><div class="i">' + esc(it.f.name) + ' (p.' + it.p + ')</div>';
+    const cv = card.querySelector('canvas'), paintIt = () => draw(it.f, it.p, rotOf(it.f, it.p), cv, 600, 6);
+    card.querySelector('.rt').onclick = async () => { setRot(it.f, it.p, (rotOf(it.f, it.p) + 90) % 360); await paintIt(); head(); };
+    card.querySelector('.x').onclick = () => {
+      active = active.filter(a => a.id !== it.id);
+      card.style.transform = 'scale(.8)'; card.style.opacity = '0';
+      setTimeout(() => card.remove(), 180); head();
+    };
+    $('grid').appendChild(card); paintIt();
+  });
+};
+async function head() {
+  const n = active.length;
+  $('pr').disabled = $('dl').disabled = !n;
+  if (!n) {
+    $('mt').textContent = 'No labels left';
+    $('grid').innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:36px;color:var(--mu);font-weight:600">All labels were left out. Close this popup to start again.</p>';
+    return;
+  }
+  const g = await groups();
+  $('mt').textContent = n + ' label' + (n === 1 ? '' : 's') + ' · ' + g.P.length + ' portrait 4×6″ · ' + g.L.length + ' landscape 6×4″';
+}
+$('mx').onclick = () => { $('ov').style.display = 'none'; };
+$('ov').addEventListener('click', e => { if (e.target === $('ov')) $('ov').style.display = 'none'; });
+
+// Print one orientation group: 300 DPI image per label, one page each, page size matches the group
+async function printGroup(items, land) {
+  const old = $('pf'); if (old) old.remove();
+  const fr = document.createElement('iframe'); fr.id = 'pf';
+  fr.style.cssText = 'position:fixed;right:0;bottom:0;width:10px;height:10px;opacity:.01;border:0;pointer-events:none';
+  document.body.appendChild(fr);
+  let html = '';
+  for (const it of items) {
+    const c = document.createElement('canvas');
+    await draw(it.f, it.p, rotOf(it.f, it.p), c, 1800, 12);
+    html += '<div class="pp"><img src="' + c.toDataURL('image/png') + '"></div>';
+  }
+  const pw = land ? '6in' : '4in', ph = land ? '4in' : '6in', d = fr.contentWindow.document;
+  d.open();
+  d.write('<!DOCTYPE html><html><head><title>Labels</title><style>@page{size:' + pw + ' ' + ph + ';margin:0}*{margin:0;padding:0;box-sizing:border-box}body{background:#fff}.pp{width:' + pw + ';height:' + ph + ';page-break-after:always;break-after:page;overflow:hidden}.pp:last-child{page-break-after:avoid;break-after:avoid}img{width:100%;height:100%;object-fit:contain;display:block}</style></head><body>' + html + '</body></html>');
+  d.close();
+  await Promise.all([...d.images].map(i => i.decode ? i.decode().catch(() => {}) : 0));
+  fr.contentWindow.focus(); fr.contentWindow.print();
+}
+$('pr').onclick = async () => {
+  if (!active.length) return;
+  const g = await groups(), parts = [];
+  if (g.P.length) parts.push([g.P, false]);
+  if (g.L.length) parts.push([g.L, true]);
+  const msg = 'Print ' + (g.P.length ? g.P.length + ' portrait 4×6″' : '') + (g.P.length && g.L.length ? ' and ' : '') + (g.L.length ? g.L.length + ' landscape 6×4″' : '') + ' label(s)?' + (parts.length > 1 ? ' They print as two separate jobs.' : '');
+  if (!await ask(msg, 'Print')) return;
+  $('pr').disabled = true; $('pr').textContent = '⏳ Preparing…';
+  try {
+    for (let i = 0; i < parts.length; i++) {
+      if (i > 0 && !await ask('Now print the landscape 6×4″ labels?', 'Print')) break;
+      await printGroup(parts[i][0], parts[i][1]);
+    }
+  } catch (e) { toast('Could not open print dialog: ' + e.message); }
+  $('pr').disabled = false; $('pr').textContent = '🖨️ Print All';
+};
+
+// Download: one PDF per orientation (portrait 288x432pt, landscape 432x288pt)
+async function build(items) {
+  const out = await PDFLib.PDFDocument.create();
+  for (const it of items) {
+    const f = it.f; f.lib = f.lib || await PDFLib.PDFDocument.load(f.buffer.slice(0));
+    const b = await boxFor(f, it.p), cw = b.x2 - b.x1, ch = b.y2 - b.y1, rot = rotOf(f, it.p), d = dims(cw, ch, rot, 432, 6);
+    const pg = out.addPage([d.w, d.h]);
+    const em = await out.embedPage(f.lib.getPage(it.p - 1), { left: b.x1, bottom: b.y1, right: b.x2, top: b.y2 });
+    // drawPage rotates counter-clockwise about (x, y): pick (x, y) so the rotated label stays centred
+    const w = cw * d.k, h = ch * d.k, th = -rot * Math.PI / 180, c = Math.cos(th), sn = Math.sin(th);
+    pg.drawPage(em, { x: d.w / 2 - (c * w / 2 - sn * h / 2), y: d.h / 2 - (sn * w / 2 + c * h / 2), width: w, height: h, rotate: PDFLib.degrees(-rot) });
+  }
+  return out.save();
+}
+$('dl').onclick = async () => {
+  if (!active.length) return;
+  $('dl').disabled = true; $('dl').textContent = 'Generating…';
+  try {
+    const g = await groups(), jobs = [];
+    if (g.P.length) jobs.push(['portrait-4x6', g.P]);
+    if (g.L.length) jobs.push(['landscape-6x4', g.L]);
+    for (let i = 0; i < jobs.length; i++) {
+      const url = URL.createObjectURL(new Blob([await build(jobs[i][1])], { type: 'application/pdf' }));
+      const a = document.createElement('a'); a.href = url; a.download = 'labels-' + jobs[i][0] + '-' + jobs[i][1].length + '.pdf'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      if (i < jobs.length - 1) await new Promise(r => setTimeout(r, 600));
+    }
+    if (jobs.length > 1) toast('Portrait and landscape labels saved as 2 separate PDFs.', true);
+  } catch (e) { toast('Download failed: ' + e.message); }
+  $('dl').disabled = false; $('dl').textContent = '⬇️ Download PDF';
+};
+</script>
+</body>
+</html>
